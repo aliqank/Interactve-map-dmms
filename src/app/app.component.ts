@@ -90,6 +90,12 @@ export class AppComponent implements AfterViewInit, OnInit {
         console.error('Error parsing saved polygon coordinates:', error);
       }
     }
+    
+    // Load saved map layer from localStorage if available
+    const savedLayer = localStorage.getItem('selectedMapLayer');
+    if (savedLayer) {
+      this.selectedLayer = savedLayer;
+    }
   }
 
   ngAfterViewInit(): void {
@@ -243,6 +249,9 @@ export class AppComponent implements AfterViewInit, OnInit {
   // Change the map layer
   changeMapLayer(layerType: string): void {
     this.selectedLayer = layerType;
+    
+    // Save selected layer to localStorage
+    localStorage.setItem('selectedMapLayer', layerType);
     
     // Remove all current base layers
     Object.values(this.baseLayers).forEach(layer => {
@@ -576,8 +585,8 @@ export class AppComponent implements AfterViewInit, OnInit {
         })
       };
       
-      // Add the default layer
-      this.baseLayers['roadmap'].addTo(this.map);
+      // Add the saved layer or default to roadmap
+      this.baseLayers[this.selectedLayer].addTo(this.map);
       
       // Show the world first, then animate to the bounds after a short delay
       setTimeout(() => {
@@ -599,6 +608,8 @@ export class AppComponent implements AfterViewInit, OnInit {
       
       // Add the OpenStreetMap layer
       this.baseLayers['osm'].addTo(this.map);
+      this.selectedLayer = 'osm';
+      localStorage.setItem('selectedMapLayer', 'osm');
       
       // Show the world first, then animate to the bounds after a short delay
       setTimeout(() => {
