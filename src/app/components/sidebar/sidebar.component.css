@@ -124,11 +124,11 @@
 }
 
 .map-control-item:hover {
-  background-color: #f5f5f5;
+  background-color: #3b3d43;
 }
 
 .map-control-item.active {
-  background-color: #eef2ff;
+  background-color: #3b3d43;
 }
 
 .map-control-icon {
