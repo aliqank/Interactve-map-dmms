@@ -6,10 +6,11 @@ import { Loader } from '@googlemaps/js-api-loader';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { GeoJsonControlComponent } from './components/geojson-control/geojson-control.component';
+import { SidebarComponent } from './components/sidebar/sidebar.component';
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule, CommonModule, HttpClientModule, GeoJsonControlComponent],
+  imports: [FormsModule, CommonModule, HttpClientModule, GeoJsonControlComponent, SidebarComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
   standalone: true
@@ -214,6 +215,58 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.showGeoJsonControl = false;
     this.showPolygonControl = false;
     this.showDataSendingControl = false;
+  }
+  
+  handleToolSelection(toolId: string): void {
+    console.log('Tool selected:', toolId);
+    
+    // Reset all active modes
+    this.measureMode = false;
+    this.drawPolygonMode = false;
+    this.dataSendingMode = false;
+    
+    // Hide all control panels
+    this.showLayerControl = false;
+    this.showSearchControl = false;
+    this.showMeasureControl = false;
+    this.showGeoJsonControl = false;
+    this.showPolygonControl = false;
+    this.showDataSendingControl = false;
+    this.showSettingsControl = false;
+    
+    // Handle specific tool actions
+    switch(toolId) {
+      case 'magic':
+        // Magic select tool functionality
+        break;
+      case 'cursor':
+        // Cursor tool functionality
+        break;
+      case 'rectangle':
+        // Rectangle tool functionality
+        this.showPolygonControl = true;
+        this.drawPolygonMode = true;
+        break;
+      case 'text':
+        // Text tool functionality
+        break;
+      case 'shapes':
+        // Shapes tool functionality
+        break;
+      case 'connector':
+        // Connector tool functionality
+        break;
+      case 'frame':
+        // Frame tool functionality
+        break;
+      case 'comment':
+        // Comment tool functionality
+        break;
+      case 'add':
+        // Add tool functionality
+        this.showGeoJsonControl = true;
+        break;
+    }
   }
   
   saveSettings(): void {

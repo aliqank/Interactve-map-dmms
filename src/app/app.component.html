@@ -1,32 +1,18 @@
 <div id="map"></div>
 
-<div class="control-panel">
-  <div class="control-buttons">
-    <button (click)="toggleLayerControl()" [class.active]="showLayerControl" title="Change Map Layer">
-      <i class="fa fa-layer-group"></i> Layers
-    </button>
-    <button (click)="toggleSearchControl()" [class.active]="showSearchControl" title="Search Locations">
-      <i class="fa fa-search"></i> Search
-    </button>
-    <button (click)="findMyLocation()" title="Find My Location">
-      <i class="fa fa-location-arrow"></i> My Location
-    </button>
-    <button (click)="toggleMeasureControl()" [class.active]="showMeasureControl" title="Measure Distance">
-      <i class="fa fa-ruler"></i> Measure
-    </button>
-    <button (click)="toggleGeoJsonControl()" [class.active]="showGeoJsonControl" title="GeoJSON Layers">
-      <i class="fa fa-map"></i> GeoJSON
-    </button>
-    <button (click)="togglePolygonControl()" [class.active]="showPolygonControl" title="Draw Polygon">
-      <i class="fa fa-draw-polygon"></i> Draw
-    </button>
-    <button (click)="toggleDataSendingControl()" [class.active]="showDataSendingControl" title="Send Coordinates to API">
-      <i class="fa fa-paper-plane"></i> Send Data
-    </button>
-    <button (click)="toggleSettingsControl()" [class.active]="showSettingsControl" title="Settings">
-      <i class="fa fa-cog"></i> Settings
-    </button>
-  </div>
+<app-sidebar [map]="map" 
+             (toolSelected)="handleToolSelection($event)"
+             (layerControlToggled)="toggleLayerControl()"
+             (searchControlToggled)="toggleSearchControl()"
+             (measureControlToggled)="toggleMeasureControl()"
+             (geoJsonControlToggled)="toggleGeoJsonControl()"
+             (polygonControlToggled)="togglePolygonControl()"
+             (dataSendingControlToggled)="toggleDataSendingControl()"
+             (settingsControlToggled)="toggleSettingsControl()"
+             (findLocationRequested)="findMyLocation()"></app-sidebar>
+
+<!-- Control panels will be displayed here but not in a control-panel div -->
+
   
   <!-- Layer Control Panel -->
   <div *ngIf="showLayerControl" class="control-panel-content">
@@ -155,4 +141,3 @@
       </button>
     </div>
   </div>
-</div>

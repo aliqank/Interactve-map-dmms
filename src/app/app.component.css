@@ -12,12 +12,11 @@
   padding: 0;
 }
 
-/* Modern control panel styling with improved aesthetics */
-/* Enhanced control panel styling with modal-like appearance */
-.control-panel {
+/* Control panel content styling for Miro-like sidebar panels */
+.control-panel-content {
   position: fixed;
+  left: 70px; /* Position next to the sidebar */
   top: 20px;
-  right: 20px;
   z-index: 1000;
   background: rgba(255, 255, 255, 0.9);
   padding: 15px;
