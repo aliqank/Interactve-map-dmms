@@ -1,0 +1,56 @@
+<div 
+  class="modal-container" 
+  [class.is-open]="isOpen" 
+  role="dialog"
+  aria-modal="true"
+  [attr.aria-labelledby]="title ? 'modal-title' : null"
+  (keydown.escape)="closeOnEscape && close()"
+>
+  <!-- Backdrop -->
+  <div 
+    *ngIf="isOpen" 
+    class="modal-backdrop" 
+    [@backdropAnimation] 
+    (click)="onBackdropClick($event)"
+  ></div>
+  
+  <!-- Modal Dialog -->
+  <div 
+    *ngIf="isOpen" 
+    class="modal-dialog" 
+    [class.modal-sm]="size === 'sm'" 
+    [class.modal-md]="size === 'md'" 
+    [class.modal-lg]="size === 'lg'" 
+    [class.modal-xl]="size === 'xl'"
+    [class.modal-centered]="centered"
+    [class.modal-scrollable]="scrollable"
+    [@modalAnimation]
+  >
+    <!-- Modal Content -->
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div *ngIf="title || showCloseButton" class="modal-header">
+        <h2 *ngIf="title" id="modal-title" class="modal-title">{{ title }}</h2>
+        <button 
+          *ngIf="showCloseButton" 
+          type="button" 
+          class="modal-close-button" 
+          aria-label="Close" 
+          (click)="close()"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <ng-content></ng-content>
+      </div>
+      
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <ng-content select="[modal-footer]"></ng-content>
+      </div>
+    </div>
+  </div>
+</div>

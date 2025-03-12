@@ -1,0 +1,387 @@
+/* Full-screen map styling - no borders */
+#map {
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  border: none;
+  outline: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Modern control panel styling with improved aesthetics */
+/* Enhanced control panel styling with modal-like appearance */
+.control-panel {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  max-width: 340px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+}
+
+.control-panel h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #2c3e50;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.control-panel h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  color: #2c3e50;
+  font-size: 16px;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding-bottom: 8px;
+}
+
+/* Improved control buttons layout */
+.control-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.control-buttons button {
+  flex: 1;
+  min-width: 80px;
+  background: #f8f9fa;
+  color: #495057;
+  border: 1px solid #e9ecef;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.control-buttons button:hover {
+  background: #e9ecef;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.control-buttons button.active {
+  background: #4263eb;
+  color: white;
+  border-color: #4263eb;
+  box-shadow: 0 4px 6px rgba(66, 99, 235, 0.3);
+}
+
+/* Improved modal-like content panels */
+.control-panel-content {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  max-height: 70vh;
+  overflow-y: auto;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Improved layer options */
+.layer-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.layer-option {
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  border: 1px solid #e9ecef;
+}
+
+.layer-option:hover {
+  background: #e9ecef;
+}
+
+.layer-option.active {
+  background: #4263eb;
+  color: white;
+  font-weight: 500;
+  border-color: #4263eb;
+}
+
+/* Enhanced input styling */
+input[type="text"],
+input[type="number"] {
+  width: 100%;
+  padding: 12px;
+  margin: 5px 0;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background: white;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus {
+  border-color: #4263eb;
+  outline: none;
+  box-shadow: inset 0 1px 3px rgba(66, 99, 235, 0.2);
+}
+
+/* Input with icon styling */
+.input-with-icon {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.input-with-icon i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+  font-size: 16px;
+}
+
+.input-with-icon input {
+  padding-left: 40px;
+}
+
+/* Search box improvements */
+.search-box, .coordinates-search-box {
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+  margin-bottom: 15px;
+}
+
+/* Improved search results container */
+.search-results {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.search-result-item {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-size: 14px;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background: #e9ecef;
+}
+
+/* Loading indicator */
+.search-loading {
+  text-align: center;
+  padding: 10px;
+  color: #495057;
+  font-style: italic;
+}
+
+/* Improved button styling */
+button {
+  background: #4263eb;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  margin-top: 5px;
+  box-shadow: 0 2px 5px rgba(66, 99, 235, 0.3);
+}
+
+button:hover {
+  background: #3b5bdb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(66, 99, 235, 0.4);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button.secondary-button {
+  background: #868e96;
+  box-shadow: 0 2px 5px rgba(134, 142, 150, 0.3);
+}
+
+button.secondary-button:hover {
+  background: #495057;
+  box-shadow: 0 4px 8px rgba(134, 142, 150, 0.4);
+}
+
+button.primary-button {
+  background: #4263eb;
+  box-shadow: 0 2px 5px rgba(66, 99, 235, 0.3);
+}
+
+button.success-button {
+  background: #40c057;
+  box-shadow: 0 2px 5px rgba(64, 192, 87, 0.3);
+}
+
+button.success-button:hover {
+  background: #37b24d;
+  box-shadow: 0 4px 8px rgba(64, 192, 87, 0.4);
+}
+
+button:disabled {
+  background: #ced4da;
+  color: #868e96;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Responsive design improvements */
+@media (max-width: 768px) {
+  .control-panel {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+    padding: 12px;
+  }
+  
+  .control-panel-content {
+    max-height: 60vh;
+  }
+  
+  .search-results {
+    max-height: 150px;
+  }
+  
+  .control-buttons {
+    flex-wrap: wrap;
+  }
+  
+  .control-buttons button {
+    padding: 8px;
+    font-size: 12px;
+  }
+}
+
+/* Rest of the CSS remains unchanged */
+.map-toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  z-index: 2000;
+  opacity: 0;
+  transition: all 0.3s ease;
+  max-width: 80%;
+  backdrop-filter: blur(5px);
+}
+
+.map-toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.map-toast .toast-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.map-toast i {
+  font-size: 20px;
+}
+
+.map-toast.success {
+  border-left: 4px solid #40c057;
+}
+
+.map-toast.success i {
+  color: #40c057;
+}
+
+.map-toast.error {
+  border-left: 4px solid #fa5252;
+}
+
+.map-toast.error i {
+  color: #fa5252;
+}
+
+.map-toast.info {
+  border-left: 4px solid #4263eb;
+}
+
+.map-toast.info i {
+  color: #4263eb;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+  .control-panel {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+    padding: 12px;
+  }
+  
+  .control-buttons {
+    flex-wrap: wrap;
+  }
+  
+  .control-buttons button {
+    padding: 8px;
+    font-size: 12px;
+  }
+  
+  .map-toast {
+    max-width: 90%;
+    padding: 10px 15px;
+  }
+}

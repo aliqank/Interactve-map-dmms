@@ -1,0 +1,141 @@
+.modal-container {
+  position: relative;
+  z-index: 1050;
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1050;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1051;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.modal-centered {
+  align-items: center;
+}
+
+.modal-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background-color: #fff;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  outline: 0;
+  max-height: calc(100vh - 3rem);
+  overflow: hidden;
+}
+
+.modal-scrollable .modal-content {
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #212529;
+}
+
+.modal-close-button {
+  padding: 0.5rem;
+  margin: -0.5rem -0.5rem -0.5rem auto;
+  background-color: transparent;
+  border: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  text-shadow: 0 1px 0 #fff;
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.modal-close-button:hover {
+  opacity: 0.75;
+}
+
+.modal-body {
+  position: relative;
+  flex: 1 1 auto;
+  padding: 1.5rem;
+}
+
+.modal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  gap: 0.5rem;
+}
+
+/* Modal sizes */
+.modal-sm .modal-content {
+  max-width: 300px;
+}
+
+.modal-md .modal-content {
+  max-width: 500px;
+}
+
+.modal-lg .modal-content {
+  max-width: 800px;
+}
+
+.modal-xl .modal-content {
+  max-width: 1140px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .modal-dialog {
+    padding: 1rem;
+  }
+  
+  .modal-sm .modal-content,
+  .modal-md .modal-content,
+  .modal-lg .modal-content,
+  .modal-xl .modal-content {
+    max-width: 100%;
+  }
+  
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 1rem;
+  }
+}

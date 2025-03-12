@@ -1,0 +1,245 @@
+.geojson-control {
+  width: 100%;
+  padding: 10px 0;
+}
+
+.geojson-control h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.geojson-control h4 {
+  margin: 15px 0 10px;
+  font-size: 14px;
+}
+
+.geojson-control h5 {
+  margin: 10px 0 8px;
+  font-size: 13px;
+}
+
+/* Upload section */
+.upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.file-upload-btn {
+  display: inline-block;
+  padding: 8px 12px;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.file-upload-btn:hover {
+  background: #e0e0e0;
+}
+
+.url-input {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.url-input input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.secondary-button {
+  padding: 8px 12px;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.secondary-button:hover {
+  background: #e0e0e0;
+}
+
+/* Messages */
+.loading-message, .error-message {
+  padding: 8px;
+  margin: 10px 0;
+  border-radius: 4px;
+}
+
+.loading-message {
+  background: #e8f4fd;
+  color: #0277bd;
+}
+
+.error-message {
+  background: #ffebee;
+  color: #c62828;
+}
+
+/* Layers list */
+.layers-list {
+  margin-top: 15px;
+}
+
+.layer-item {
+  margin-bottom: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.layer-item.active {
+  border-color: #ff7800;
+}
+
+.layer-header {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  background: #f8f8f8;
+  cursor: pointer;
+}
+
+.layer-item.active .layer-header {
+  background: #fff3e0;
+}
+
+.layer-visibility {
+  margin-right: 8px;
+}
+
+.layer-name {
+  flex: 1;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.layer-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.layer-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #555;
+  border-radius: 3px;
+}
+
+.layer-actions button:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Layer styling */
+.layer-styling {
+  padding: 10px;
+  background: #f9f9f9;
+  border-top: 1px solid #eee;
+}
+
+.style-presets {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.color-preset {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  transition: transform 0.2s ease;
+}
+
+.color-preset:hover {
+  transform: scale(1.1);
+}
+
+.style-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.style-option {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.style-option label {
+  font-size: 12px;
+  color: #555;
+}
+
+.style-option input {
+  width: 100%;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 15px;
+  color: #777;
+  font-style: italic;
+}
+
+.empty-state p {
+  margin: 5px 0;
+}
+
+.sample-button {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: #ff7800;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+}
+
+.sample-button:hover {
+  background: #e56c00;
+}
+
+/* GeoJSON popup styling */
+.geojson-popup h3 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+}
+
+.properties-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.properties-table th, .properties-table td {
+  padding: 4px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+.properties-table th {
+  font-weight: 600;
+  color: #555;
+  width: 40%;
+}

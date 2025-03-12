@@ -1,0 +1,119 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Point Example",
+        "description": "This is an example point feature",
+        "category": "Point of Interest",
+        "rating": 4.5
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [0, 0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Line Example",
+        "description": "This is an example line feature",
+        "category": "Route",
+        "distance": 10.5,
+        "style": {
+          "color": "#ff0000",
+          "weight": 4,
+          "dashArray": "5,10"
+        }
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [0, 0],
+          [1, 1],
+          [2, 0],
+          [3, 1]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Polygon Example",
+        "description": "This is an example polygon feature",
+        "category": "Area",
+        "area": 25.5,
+        "style": {
+          "fillColor": "#00ff00",
+          "fillOpacity": 0.5
+        }
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [5, 0],
+            [6, 1],
+            [7, 0],
+            [6, -1],
+            [5, 0]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Multi-Point Example",
+        "description": "This is an example multi-point feature",
+        "category": "Locations",
+        "count": 3
+      },
+      "geometry": {
+        "type": "MultiPoint",
+        "coordinates": [
+          [-2, 2],
+          [-1, 3],
+          [-3, 1]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Multi-Polygon Example",
+        "description": "This is an example multi-polygon feature",
+        "category": "Complex Area",
+        "style": {
+          "fillColor": "#0000ff",
+          "color": "#000",
+          "weight": 2
+        }
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [-5, -2],
+              [-4, -1],
+              [-3, -2],
+              [-4, -3],
+              [-5, -2]
+            ]
+          ],
+          [
+            [
+              [-2, -2],
+              [-1, -1],
+              [0, -2],
+              [-1, -3],
+              [-2, -2]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
