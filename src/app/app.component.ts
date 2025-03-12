@@ -32,7 +32,7 @@ export class AppComponent implements AfterViewInit, OnInit {
   private tempPolygon: L.Polygon | null = null;
   
   // You need to replace this with your actual Google Maps API key
-  private googleMapsApiKey = 'AIzaSyD28fNwIVhecdRErradtlZ3gp-51HOIIA0';
+  private googleMapsApiKey = 'test';
 
   // UI control properties
   searchQuery = '';
