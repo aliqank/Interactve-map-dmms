@@ -45,10 +45,17 @@ export class AppComponent implements AfterViewInit, OnInit {
   showGeoJsonControl = false;
   showPolygonControl = false;
   showDataSendingControl = false;
+  showSettingsControl = false;
   measureDistance = 0;
   isSearching = false;
   private dataSendingMode = false;
   
+  // API Settings
+  apiSettings = {
+    apiUrl: 'https://dmms-6179-joker-qa.dev-pm.dmms.kz/api/v1/mqtt/galileo-sky',
+    bearerId: '3fa85f64-5717-4562-b3fc-2c963f66afa1',
+    trackerId: 'string'
+  };
   coordinatesInput = [
     { lat: 51.1801, lng: 71.4460 }, // Northwest corner of Astana
     { lat: 51.1801, lng: 71.4704 }, // Northeast corner of Astana
@@ -96,6 +103,16 @@ export class AppComponent implements AfterViewInit, OnInit {
     if (savedLayer) {
       this.selectedLayer = savedLayer;
     }
+    
+    // Load saved API settings from localStorage if available
+    const savedApiSettings = localStorage.getItem('apiSettings');
+    if (savedApiSettings) {
+      try {
+        this.apiSettings = JSON.parse(savedApiSettings);
+      } catch (error) {
+        console.error('Error parsing saved API settings:', error);
+      }
+    }
   }
 
   ngAfterViewInit(): void {
@@ -110,6 +127,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.showGeoJsonControl = false;
     this.showPolygonControl = false;
     this.showDataSendingControl = false;
+    this.showSettingsControl = false;
   }
   
   toggleSearchControl(): void {
@@ -119,6 +137,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.showGeoJsonControl = false;
     this.showPolygonControl = false;
     this.showDataSendingControl = false;
+    this.showSettingsControl = false;
   }
   
   toggleMeasureControl(): void {
@@ -128,6 +147,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.showGeoJsonControl = false;
     this.showPolygonControl = false;
     this.showDataSendingControl = false;
+    this.showSettingsControl = false;
     this.measureMode = this.showMeasureControl;
     
     if (!this.measureMode) {
@@ -142,6 +162,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.showMeasureControl = false;
     this.showPolygonControl = false;
     this.showDataSendingControl = false;
+    this.showSettingsControl = false;
     
     if (this.measureMode) {
       this.measureMode = false;
@@ -159,6 +180,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.showMeasureControl = false;
     this.showGeoJsonControl = false;
     this.showDataSendingControl = false;
+    this.showSettingsControl = false;
     
     this.drawPolygonMode = this.showPolygonControl;
     if (!this.drawPolygonMode) {
@@ -173,6 +195,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.showMeasureControl = false;
     this.showGeoJsonControl = false;
     this.showPolygonControl = false;
+    this.showSettingsControl = false;
     
     this.dataSendingMode = this.showDataSendingControl;
     
@@ -181,6 +204,22 @@ export class AppComponent implements AfterViewInit, OnInit {
     } else {
       this.showToast('Data sending mode deactivated.', 'info');
     }
+  }
+  
+  toggleSettingsControl(): void {
+    this.showSettingsControl = !this.showSettingsControl;
+    this.showLayerControl = false;
+    this.showSearchControl = false;
+    this.showMeasureControl = false;
+    this.showGeoJsonControl = false;
+    this.showPolygonControl = false;
+    this.showDataSendingControl = false;
+  }
+  
+  saveSettings(): void {
+    // Save settings to localStorage
+    localStorage.setItem('apiSettings', JSON.stringify(this.apiSettings));
+    this.showToast('Settings saved successfully', 'success');
   }
 
   startPolygonDrawing(): void {
@@ -651,11 +690,11 @@ export class AppComponent implements AfterViewInit, OnInit {
   }
   
   private sendCoordinatesToAPI(latitude: number, longitude: number): void {
-    const apiUrl = 'https://dmms-6179-joker-qa.dev-pm.dmms.kz/api/v1/mqtt/galileo-sky';
+    const apiUrl = this.apiSettings.apiUrl;
     
     const payload = {
-      bearerId: '3fa85f64-5717-4562-b3fc-2c963f66afa1', // Default bearer ID
-      trackerId: 'string', // Default tracker ID
+      bearerId: this.apiSettings.bearerId,
+      trackerId: this.apiSettings.trackerId,
       latitude: latitude,
       longitude: longitude
     };

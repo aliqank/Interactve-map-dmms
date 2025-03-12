@@ -23,6 +23,9 @@
     <button (click)="toggleDataSendingControl()" [class.active]="showDataSendingControl" title="Send Coordinates to API">
       <i class="fa fa-paper-plane"></i> Send Data
     </button>
+    <button (click)="toggleSettingsControl()" [class.active]="showSettingsControl" title="Settings">
+      <i class="fa fa-cog"></i> Settings
+    </button>
   </div>
   
   <!-- Layer Control Panel -->
@@ -126,8 +129,30 @@
       <i class="fa fa-info-circle"></i> Click on the map to send coordinates to the API
     </p>
     <div class="data-sending-info">
-      <p><strong>API Endpoint:</strong> http://api-gateway/api/v1/tracker-movement/galileo-sky</p>
+      <p><strong>API Endpoint:</strong> {{apiSettings.apiUrl}}</p>
       <p><strong>Status:</strong> <span class="status-active">Active</span></p>
+    </div>
+  </div>
+  
+  <!-- Settings Control Panel -->
+  <div *ngIf="showSettingsControl" class="control-panel-content">
+    <h3>API Settings</h3>
+    <div class="settings-form">
+      <div class="form-group">
+        <label for="apiUrl">API Endpoint URL</label>
+        <input type="text" id="apiUrl" [(ngModel)]="apiSettings.apiUrl" placeholder="Enter API URL">
+      </div>
+      <div class="form-group">
+        <label for="bearerId">Bearer ID</label>
+        <input type="text" id="bearerId" [(ngModel)]="apiSettings.bearerId" placeholder="Enter Bearer ID">
+      </div>
+      <div class="form-group">
+        <label for="trackerId">Tracker ID</label>
+        <input type="text" id="trackerId" [(ngModel)]="apiSettings.trackerId" placeholder="Enter Tracker ID">
+      </div>
+      <button (click)="saveSettings()" class="success-button">
+        <i class="fa fa-save"></i> Save Settings
+      </button>
     </div>
   </div>
 </div>
