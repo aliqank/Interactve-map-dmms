@@ -409,3 +409,27 @@ button:disabled {
     padding: 10px 15px;
   }
 }
+
+/* Более компактный попап с уменьшенной горизонтальной шириной */
+.compact-popup .leaflet-popup-content-wrapper {
+  /* Уменьшаем горизонтальные отступы и максимальную ширину */
+  padding: 6px 4px; /* по горизонтали отступ сокращён до 4px */
+  border-radius: 4px;
+  max-width: 100px; /* уменьшили с 200px до 100px */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.compact-popup .leaflet-popup-content {
+  margin: 5px;
+  line-height: 1.2;
+  font-size: 12px;
+}
+
+.compact-popup .leaflet-popup-tip {
+  width: 12px;
+  height: 12px;
+}
+
+.compact-popup .leaflet-popup-tip-container {
+  margin-top: -6px;
+}

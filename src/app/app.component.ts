@@ -530,7 +530,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     }).addTo(this.map);
     
     // Fit the map to the polygon bounds
-    this.map.fitBounds(polygon.getBounds());
+    this.map.flyToBounds(polygon.getBounds());
   }
 
   private handleMapClickForMeasurement(e: L.LeafletMouseEvent): void {
@@ -752,11 +752,23 @@ export class AppComponent implements AfterViewInit, OnInit {
       longitude: longitude
     };
 
-    // Show sending status in the popup
-    const popup = L.popup()
+    // Show compact sending status in the popup
+    const popup = L.popup({
+      className: 'compact-popup',
+      closeButton: false,
+      autoClose: false,
+      closeOnEscapeKey: false,
+      closeOnClick: false
+    })
       .setLatLng([latitude, longitude])
-      .setContent(`<strong>Coordinates:</strong><br>Latitude: ${latitude.toFixed(6)}<br>Longitude: ${longitude.toFixed(6)}<br><span style="color:blue">Sending data...</span>`)
+      .setContent(`
+        <div style="font-size:12px; line-height:1.2;">
+          Latitude : ${latitude.toFixed(5)}<br>
+          Longitude : ${longitude.toFixed(5)}<br>
+        </div>
+      `)      
       .openOn(this.map);
+    
 
     // Add headers to handle CORS and content type
     const headers = { 
@@ -769,17 +781,35 @@ export class AppComponent implements AfterViewInit, OnInit {
         console.log('API response:', response);
         if (response && response.isSuccess) {
           console.log('Coordinates sent successfully');
-          popup.setContent(`<strong>Coordinates:</strong><br>Latitude: ${latitude.toFixed(6)}<br>Longitude: ${longitude.toFixed(6)}<br><span style="color:green">✓ Sent successfully</span>`);
+          popup.setContent(`
+            <div style="font-size:12px; line-height:1.2;">
+              <div><b>Latitude:</b> ${latitude.toFixed(5)}</div>
+              <div><b>Longitude:</b> ${longitude.toFixed(5)}</div>
+              <div style="color:green; font-size:11px;">✓ Sent successfully</div>
+            </div>
+          `);          
           this.showToast('Coordinates sent successfully', 'success');
+          
+          // Auto-close popup after success
+          setTimeout(() => popup.close(), 2000);
         } else {
           console.error('API returned error:', response?.errors || 'Unknown error');
-          popup.setContent(`<strong>Coordinates:</strong><br>Latitude: ${latitude.toFixed(6)}<br>Longitude: ${longitude.toFixed(6)}<br><span style="color:red">✗ Error: ${response?.errors || 'API error'}</span>`);
+          popup.setContent(`
+            <div style="font-size:12px; line-height:1.2;">
+              <div><b>Latitude:</b> ${latitude.toFixed(5)}</div>
+              <div><b>Longitude:</b> ${longitude.toFixed(5)}</div>
+              <div style="color:red; font-size:11px;">✗ ${response?.errors || 'API error'}</div>
+            </div>
+          `);          
           this.showToast('Failed to send coordinates: ' + (response?.errors || 'API error'), 'error');
         }
       },
       error: (error) => {
         console.error('API request error:', error);
-        popup.setContent(`<strong>Coordinates:</strong><br>Latitude: ${latitude.toFixed(6)}<br>Longitude: ${longitude.toFixed(6)}<br><span style="color:red">✗ Error: Network or server error</span>`);
+        popup.setContent(`<div style="font-size:12px;line-height:1.2;">
+          <div><b>Lat:</b> ${latitude.toFixed(5)}, <b>Lng:</b> ${longitude.toFixed(5)}</div>
+          <div style="color:red;font-size:11px;">✗ Network error</div>
+        </div>`);
         this.showToast('Failed to send coordinates: Network or server error', 'error');
       }
     });
