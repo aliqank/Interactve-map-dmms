@@ -5,8 +5,9 @@
     left: 2.5%;
     transform: translateX(-50%);
     
-    height: 47vh;
-    width: 56px;
+    height: auto;
+    max-height: 47vh;
+    width: 48px;
     background-color: white;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     display: flex;
@@ -14,19 +15,15 @@
     justify-content: space-between;
     z-index: 1000;
     overflow: hidden;
-  
-    /* Добавляем округление */
     border-radius: 8px;
-  }
-  
-  
+}
 
 /* Tools container */
 .sidebar-tools {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 6px 0;
+  padding: 4px 0;
   overflow-y: auto;
 }
 
@@ -36,8 +33,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 3px 0;
-  margin-bottom: 4px;
+  padding: 2px 0;
+  margin-bottom: 2px;
   border-bottom: 1px solid #f0f0f0;
 }
 
@@ -48,10 +45,10 @@
 
 /* Individual tool item */
 .tool-item {
-  width: 36px; /* Smaller size */
-  height: 36px; /* Smaller size */
+  width: 32px;
+  height: 32px;
   border-radius: 4px;
-  margin: 2px 0; /* Reduced margin */
+  margin: 1px 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -81,19 +78,19 @@
 
 /* Tool icon */
 .tool-icon {
-  width: 20px; /* Smaller icon */
-  height: 20px; /* Smaller icon */
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px; /* Smaller font size */
+  font-size: 14px;
   color: #555;
 }
 
 /* Special styling for magic tool */
 .magic-icon {
   color: #8a2be2;
-  font-size: 16px; /* Slightly larger for emphasis */
+  font-size: 16px;
 }
 
 /* Add tool with special styling */
@@ -103,7 +100,7 @@
 
 /* Bottom section with undo/redo */
 .sidebar-bottom {
-  padding: 6px 0;
+  padding: 4px 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -112,15 +109,16 @@
 
 /* Map control tools */
 .map-control-item {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 4px;
-  margin: 2px 0;
+  margin: 1px 0;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
+  position: relative;
 }
 
 .map-control-item:hover {
@@ -131,9 +129,20 @@
   background-color: #eef2ff;
 }
 
+.map-control-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  background-color: #4d7cfe;
+  border-radius: 0 2px 2px 0;
+}
+
 .map-control-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -151,12 +160,12 @@
   transform: translateY(-50%);
   background-color: rgba(0, 0, 0, 0.7);
   color: white;
-  padding: 4px 8px;
+  padding: 3px 6px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 11px;
   white-space: nowrap;
   z-index: 1001;
-  margin-left: 8px;
+  margin-left: 6px;
   pointer-events: none;
   opacity: 0.9;
 }

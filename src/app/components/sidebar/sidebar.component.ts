@@ -44,39 +44,66 @@ export class SidebarComponent {
   }
   
   toggleMapControl(controlType: string): void {
+    // Get the control property name
+    const controlProp = `show${controlType.charAt(0).toUpperCase() + controlType.slice(1)}Control`;
+    
+    // Check if we're toggling the currently active control
+    const isCurrentlyActive = this.mapControls[controlProp as keyof typeof this.mapControls];
+    
     // Reset all controls first
     Object.keys(this.mapControls).forEach(key => {
       this.mapControls[key as keyof typeof this.mapControls] = false;
     });
     
-    // Toggle the selected control
+    // If the control was already active, leave all controls off (deselection)
+    // Otherwise, activate the selected control
+    if (!isCurrentlyActive) {
+      switch(controlType) {
+        case 'layer':
+          this.mapControls.showLayerControl = true;
+          break;
+        case 'search':
+          this.mapControls.showSearchControl = true;
+          break;
+        case 'measure':
+          this.mapControls.showMeasureControl = true;
+          break;
+        case 'geojson':
+          this.mapControls.showGeoJsonControl = true;
+          break;
+        case 'polygon':
+          this.mapControls.showPolygonControl = true;
+          break;
+        case 'dataSending':
+          this.mapControls.showDataSendingControl = true;
+          break;
+        case 'settings':
+          this.mapControls.showSettingsControl = true;
+          break;
+      }
+    }
+    
+    // Always emit the event to notify parent component
     switch(controlType) {
       case 'layer':
-        this.mapControls.showLayerControl = true;
         this.layerControlToggled.emit();
         break;
       case 'search':
-        this.mapControls.showSearchControl = true;
         this.searchControlToggled.emit();
         break;
       case 'measure':
-        this.mapControls.showMeasureControl = true;
         this.measureControlToggled.emit();
         break;
       case 'geojson':
-        this.mapControls.showGeoJsonControl = true;
         this.geoJsonControlToggled.emit();
         break;
       case 'polygon':
-        this.mapControls.showPolygonControl = true;
         this.polygonControlToggled.emit();
         break;
       case 'dataSending':
-        this.mapControls.showDataSendingControl = true;
         this.dataSendingControlToggled.emit();
         break;
       case 'settings':
-        this.mapControls.showSettingsControl = true;
         this.settingsControlToggled.emit();
         break;
     }
