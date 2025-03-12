@@ -746,7 +746,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     const apiUrl = this.apiSettings.apiUrl;
     
     const payload = {
-      bearerId: this.apiSettings.bearerId,
+      bearerId: null,
       trackerId: this.apiSettings.trackerId,
       latitude: latitude,
       longitude: longitude

@@ -1,0 +1,41 @@
+# Node modules
+node_modules
+
+# Build artifacts
+dist
+.angular
+
+# Git files
+.git
+.gitignore
+
+# Environment files
+.env
+.env.*
+
+# Editor files
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+coverage
+*.spec.ts
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker files (no need to copy these into the image)
+Dockerfile
+.dockerignore
+
+# Other unnecessary files
+README.md
+LICENSE
