@@ -889,23 +889,25 @@ export class AppComponent implements AfterViewInit, OnInit {
       longitude: longitude
     };
 
-    // Show compact sending status in the popup
+    // Create a compact popup with icons
     const popup = L.popup({
       className: 'compact-popup',
       closeButton: false,
       autoClose: false,
       closeOnEscapeKey: false,
-      closeOnClick: false
+      closeOnClick: false,
+      maxWidth: 150,
+      minWidth: 120,
+      offset: [0, -10]
     })
       .setLatLng([latitude, longitude])
       .setContent(`
-        <div style="font-size:12px; line-height:1.2;">
-          Latitude : ${latitude.toFixed(5)}<br>
-          Longitude : ${longitude.toFixed(5)}<br>
+        <div style="font-size:11px; line-height:1.2; display:flex; align-items:center; gap:2px; padding:2px;">
+          <i class="fas fa-map-marker-alt" style="color:#4263eb; font-size:10px;"></i>
+          <span style="white-space:nowrap;">${latitude.toFixed(5)}, ${longitude.toFixed(5)}</span>
         </div>
       `)      
       .openOn(this.map);
-    
 
     // Add headers to handle CORS and content type
     const headers = { 
@@ -919,10 +921,10 @@ export class AppComponent implements AfterViewInit, OnInit {
         if (response && response.isSuccess) {
           console.log('Coordinates sent successfully');
           popup.setContent(`
-            <div style="font-size:12px; line-height:1.2;">
-              <div><b>Latitude:</b> ${latitude.toFixed(5)}</div>
-              <div><b>Longitude:</b> ${longitude.toFixed(5)}</div>
-              <div style="color:green; font-size:11px;">✓ Sent successfully</div>
+            <div style="font-size:11px; line-height:1.2; display:flex; align-items:center; gap:2px; padding:2px;">
+              <i class="fas fa-map-marker-alt" style="color:#4263eb; font-size:10px;"></i>
+              <span style="white-space:nowrap;">${latitude.toFixed(5)}, ${longitude.toFixed(5)}</span>
+              <i class="fas fa-check-circle" style="color:#2b8a3e; font-size:10px; margin-left:2px;"></i>
             </div>
           `);          
           this.showToast('Coordinates sent successfully', 'success');
@@ -932,10 +934,10 @@ export class AppComponent implements AfterViewInit, OnInit {
         } else {
           console.error('API returned error:', response?.errors || 'Unknown error');
           popup.setContent(`
-            <div style="font-size:12px; line-height:1.2;">
-              <div><b>Latitude:</b> ${latitude.toFixed(5)}</div>
-              <div><b>Longitude:</b> ${longitude.toFixed(5)}</div>
-              <div style="color:red; font-size:11px;">✗ ${response?.errors || 'API error'}</div>
+            <div style="font-size:11px; line-height:1.2; display:flex; align-items:center; gap:2px; padding:2px;">
+              <i class="fas fa-map-marker-alt" style="color:#4263eb; font-size:10px;"></i>
+              <span style="white-space:nowrap;">${latitude.toFixed(5)}, ${longitude.toFixed(5)}</span>
+              <i class="fas fa-exclamation-circle" style="color:#e03131; font-size:10px; margin-left:2px;"></i>
             </div>
           `);          
           this.showToast('Failed to send coordinates: ' + (response?.errors || 'API error'), 'error');
@@ -943,10 +945,13 @@ export class AppComponent implements AfterViewInit, OnInit {
       },
       error: (error) => {
         console.error('API request error:', error);
-        popup.setContent(`<div style="font-size:12px;line-height:1.2;">
-          <div><b>Lat:</b> ${latitude.toFixed(5)}, <b>Lng:</b> ${longitude.toFixed(5)}</div>
-          <div style="color:red;font-size:11px;">✗ Network error</div>
-        </div>`);
+        popup.setContent(`
+          <div style="font-size:11px; line-height:1.2; display:flex; align-items:center; gap:2px; padding:2px;">
+            <i class="fas fa-map-marker-alt" style="color:#4263eb; font-size:10px;"></i>
+            <span style="white-space:nowrap;">${latitude.toFixed(5)}, ${longitude.toFixed(5)}</span>
+            <i class="fas fa-exclamation-circle" style="color:#e03131; font-size:10px; margin-left:2px;"></i>
+          </div>
+        `);
         this.showToast('Failed to send coordinates: Network or server error', 'error');
       }
     });

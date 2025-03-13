@@ -1,6 +1,31 @@
 import { Component, EventEmitter, Input, Output, OnInit, AfterViewInit, ElementRef, ViewChild, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as L from 'leaflet';
+import { FilterByGroupPipe } from './filter-by-group.pipe';
+
+// Enums for better type safety and organization
+export enum SidebarIcon {
+  LAYER = 'fa-layer-group',
+  SEARCH = 'fa-search',
+  MEASURE = 'fa-ruler',
+  GEOJSON = 'fa-map',
+  POLYGON = 'fa-draw-polygon',
+  FAVORITES = 'fa-star',
+  DATA_SENDING = 'fa-map-location',
+  SETTINGS = 'fa-cog',
+  LOCATION = 'fa-location-arrow',
+  CUSTOMIZE = 'fa-palette',
+  RESET = 'fa-undo',
+  ROTATE = 'fa-sync-alt',
+  DRAG = 'fa-grip-lines',
+  CLOSE = 'fa-times'
+}
+
+export enum ControlGroup {
+  MAP_CONTROLS = 'map-controls',
+  ROTATION_CONTROLS = 'rotation-controls',
+  BOTTOM_CONTROLS = 'bottom-controls'
+}
 
 interface SidebarSettings {
   position: { x: number, y: number };
@@ -21,10 +46,19 @@ export interface MapControls {
   showFavoritesControl: boolean;
 }
 
+export interface ControlItem {
+  id: string;
+  icon: SidebarIcon;
+  title: string;
+  group: ControlGroup;
+  action: () => void;
+  isActive?: boolean;
+}
+
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FilterByGroupPipe],
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css']
 })
@@ -32,6 +66,10 @@ export class SidebarComponent implements AfterViewInit {
   @Input() map!: L.Map;
   @Output() toolSelected = new EventEmitter<string>();
   @ViewChild('sidebarElement') sidebarElement!: ElementRef;
+  
+  // Enums for template access
+  protected readonly SidebarIcon = SidebarIcon;
+  protected readonly ControlGroup = ControlGroup;
   
   activeToolId: string | null = null;
   
@@ -73,6 +111,106 @@ export class SidebarComponent implements AfterViewInit {
     showSettingsControl: false,
     showFavoritesControl: false
   };
+  
+  // Control items configuration
+  controlItems: ControlItem[] = [
+    {
+      id: 'layer',
+      icon: SidebarIcon.LAYER,
+      title: 'Map Layers',
+      group: ControlGroup.MAP_CONTROLS,
+      action: () => this.toggleMapControl('layer'),
+      isActive: false
+    },
+    {
+      id: 'search',
+      icon: SidebarIcon.SEARCH,
+      title: 'Search',
+      group: ControlGroup.MAP_CONTROLS,
+      action: () => this.toggleMapControl('search'),
+      isActive: false
+    },
+    {
+      id: 'measure',
+      icon: SidebarIcon.MEASURE,
+      title: 'Measure Distance',
+      group: ControlGroup.MAP_CONTROLS,
+      action: () => this.toggleMapControl('measure'),
+      isActive: false
+    },
+    {
+      id: 'geojson',
+      icon: SidebarIcon.GEOJSON,
+      title: 'GeoJSON',
+      group: ControlGroup.MAP_CONTROLS,
+      action: () => this.toggleMapControl('geojson'),
+      isActive: false
+    },
+    {
+      id: 'polygon',
+      icon: SidebarIcon.POLYGON,
+      title: 'Draw Polygon',
+      group: ControlGroup.MAP_CONTROLS,
+      action: () => this.toggleMapControl('polygon'),
+      isActive: false
+    },
+    {
+      id: 'favorites',
+      icon: SidebarIcon.FAVORITES,
+      title: 'Favorite Polygons',
+      group: ControlGroup.MAP_CONTROLS,
+      action: () => this.toggleMapControl('favorites'),
+      isActive: false
+    },
+    {
+      id: 'dataSending',
+      icon: SidebarIcon.DATA_SENDING,
+      title: 'Send Data',
+      group: ControlGroup.MAP_CONTROLS,
+      action: () => this.toggleMapControl('dataSending'),
+      isActive: false
+    },
+    {
+      id: 'rotate',
+      icon: SidebarIcon.ROTATE,
+      title: 'Rotate Sidebar',
+      group: ControlGroup.ROTATION_CONTROLS,
+      action: () => this.rotateBy(90),
+      isActive: false
+    },
+    {
+      id: 'settings',
+      icon: SidebarIcon.SETTINGS,
+      title: 'Settings',
+      group: ControlGroup.BOTTOM_CONTROLS,
+      action: () => this.toggleMapControl('settings'),
+      isActive: false
+    },
+    {
+      id: 'location',
+      icon: SidebarIcon.LOCATION,
+      title: 'Find My Location',
+      group: ControlGroup.BOTTOM_CONTROLS,
+      action: () => this.findMyLocation(),
+      isActive: false
+    },
+    {
+      id: 'customize',
+      icon: SidebarIcon.CUSTOMIZE,
+      title: 'Customize Sidebar',
+      group: ControlGroup.BOTTOM_CONTROLS,
+      action: () => this.toggleCustomizationPanel(),
+      isActive: false
+    },
+    {
+      id: 'reset',
+      icon: SidebarIcon.RESET,
+      title: 'Reset Sidebar Position',
+      group: ControlGroup.BOTTOM_CONTROLS,
+      action: () => this.resetPosition(),
+      isActive: false
+    }
+  ];
   
   // Map control events
   @Output() layerControlToggled = new EventEmitter<void>();
@@ -253,6 +391,12 @@ export class SidebarComponent implements AfterViewInit {
   // Toggle customization panel
   toggleCustomizationPanel(): void {
     this.showCustomizationPanel = !this.showCustomizationPanel;
+    
+    // Update the active state of the customize control item
+    const customizeItem = this.controlItems.find(item => item.id === 'customize');
+    if (customizeItem) {
+      customizeItem.isActive = this.showCustomizationPanel;
+    }
   }
   
   selectTool(toolId: string): void {
@@ -270,6 +414,11 @@ export class SidebarComponent implements AfterViewInit {
     // Reset all controls first
     Object.keys(this.mapControls).forEach(key => {
       this.mapControls[key as keyof typeof this.mapControls] = false;
+    });
+    
+    // Reset all control items active state
+    this.controlItems.forEach(item => {
+      item.isActive = false;
     });
     
     // If the control was already active, leave all controls off (deselection)
@@ -300,6 +449,12 @@ export class SidebarComponent implements AfterViewInit {
         case 'favorites':
           this.mapControls.showFavoritesControl = true;
           break;
+      }
+      
+      // Set the active state for the selected control item
+      const selectedItem = this.controlItems.find(item => item.id === controlType);
+      if (selectedItem) {
+        selectedItem.isActive = true;
       }
     }
     

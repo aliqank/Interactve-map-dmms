@@ -15,144 +15,42 @@
      (mouseleave)="dragEnd($event)">
   
   <div class="drag-handle" title="Drag to move sidebar">
-    <i class="fa fa-grip-lines"></i>
+    <i class="fa" [ngClass]="SidebarIcon.DRAG"></i>
   </div>
   
   <div class="sidebar-tools">
-    <div class="tool-group">
-     
-    <!-- Map Control Tools -->
-    <div class="tool-group">
-      <!-- Layer control -->
+    <div class="tool-group" *ngFor="let group of [ControlGroup.MAP_CONTROLS, ControlGroup.ROTATION_CONTROLS]">
       <div class="map-control-item" 
-           [class.active]="mapControls.showLayerControl" 
-           (click)="toggleMapControl('layer')" 
-           title="Map Layers">
+           *ngFor="let item of controlItems | filterByGroup:group"
+           [class.active]="item.isActive"
+           (click)="item.action()"
+           [title]="item.title">
         <div class="map-control-icon">
-          <i class="fa fa-layer-group"></i>
-        </div>
-      </div>
-      
-      <!-- Search control -->
-      <div class="map-control-item" 
-           [class.active]="mapControls.showSearchControl" 
-           (click)="toggleMapControl('search')" 
-           title="Search">
-        <div class="map-control-icon">
-          <i class="fa fa-search"></i>
-        </div>
-      </div>
-      
-      <!-- Measure control -->
-      <div class="map-control-item" 
-           [class.active]="mapControls.showMeasureControl" 
-           (click)="toggleMapControl('measure')" 
-           title="Measure Distance">
-        <div class="map-control-icon">
-          <i class="fa fa-ruler"></i>
-        </div>
-      </div>
-      
-      <!-- GeoJSON control -->
-      <div class="map-control-item" 
-           [class.active]="mapControls.showGeoJsonControl" 
-           (click)="toggleMapControl('geojson')" 
-           title="GeoJSON">
-        <div class="map-control-icon">
-          <i class="fa fa-map"></i>
-        </div>
-      </div>
-      
-      <!-- Polygon control -->
-      <div class="map-control-item" 
-           [class.active]="mapControls.showPolygonControl" 
-           (click)="toggleMapControl('polygon')" 
-           title="Draw Polygon">
-        <div class="map-control-icon">
-          <i class="fa fa-draw-polygon"></i>
-        </div>
-      </div>
-      
-      <!-- Favorites control -->
-      <div class="map-control-item" 
-           [class.active]="mapControls.showFavoritesControl" 
-           (click)="toggleMapControl('favorites')" 
-           title="Favorite Polygons">
-        <div class="map-control-icon">
-          <i class="fa fa-star"></i>
-        </div>
-      </div>
-      
-      <!-- Data sending control -->
-      <div class="map-control-item" 
-           [class.active]="mapControls.showDataSendingControl" 
-           (click)="toggleMapControl('dataSending')" 
-           title="Send Data">
-        <div class="map-control-icon">
-          <i class="fa-solid fa-map-location"></i>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Rotation Controls -->
-    <div class="tool-group rotation-controls">
-      <div class="map-control-item" 
-           (click)="rotateBy(90)" 
-           title="Rotate Sidebar">
-        <div class="map-control-icon">
-          <i class="fa fa-sync-alt"></i>
+          <i class="fa" [ngClass]="item.icon"></i>
         </div>
       </div>
     </div>
   </div>
   
   <div class="sidebar-bottom">
-    <!-- Settings control -->
     <div class="map-control-item" 
-         [class.active]="mapControls.showSettingsControl" 
-         (click)="toggleMapControl('settings')" 
-         title="Settings">
+         *ngFor="let item of controlItems | filterByGroup:ControlGroup.BOTTOM_CONTROLS"
+         [class.active]="item.isActive"
+         (click)="item.action()"
+         [title]="item.title">
       <div class="map-control-icon">
-        <i class="fa fa-cog"></i>
-      </div>
-    </div>
-    
-    <!-- Find my location -->
-    <div class="map-control-item" 
-         (click)="findMyLocation()" 
-         title="Find My Location">
-      <div class="map-control-icon">
-        <i class="fa-solid fa-location-arrow"></i>
-      </div>
-    </div>
-    
-    <!-- Customize sidebar -->
-    <div class="map-control-item" 
-         [class.active]="showCustomizationPanel"
-         (click)="toggleCustomizationPanel()" 
-         title="Customize Sidebar">
-      <div class="map-control-icon">
-        <i class="fa fa-palette"></i>
-      </div>
-    </div>
-    
-    <!-- Reset position -->
-    <div class="map-control-item" 
-         (click)="resetPosition()" 
-         title="Reset Sidebar Position">
-      <div class="map-control-icon">
-        <i class="fa fa-undo"></i>
+        <i class="fa" [ngClass]="item.icon"></i>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Customization Panel (outside the sidebar) -->
+<!-- Customization Panel -->
 <div class="customization-panel" *ngIf="showCustomizationPanel">
   <div class="customization-header">
     <h3>Customize Sidebar</h3>
     <button class="close-button" (click)="toggleCustomizationPanel()">
-      <i class="fa fa-times"></i>
+      <i class="fa" [ngClass]="SidebarIcon.CLOSE"></i>
     </button>
   </div>
   
