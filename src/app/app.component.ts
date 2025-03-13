@@ -286,7 +286,9 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   cancelPolygonDrawing(): void {
     this.drawPolygonMode = false;
+    this.showPolygonControl = false;
     this.clearTempPolygon();
+    this.showToast('Polygon drawing cancelled', 'info');
   }
 
   clearTempPolygon(): void {

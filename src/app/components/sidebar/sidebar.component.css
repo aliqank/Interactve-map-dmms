@@ -1,7 +1,7 @@
 /* Sidebar container */
 .sidebar {
     position: fixed;
-    top: 180px;
+    top: 30%;
     left: 2.5%;
     transform: translateX(-50%);
     
