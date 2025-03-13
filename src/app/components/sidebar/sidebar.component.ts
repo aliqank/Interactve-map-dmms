@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnInit, AfterViewInit, ElementRef, ViewChild, NgZone } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, AfterViewInit, ElementRef, ViewChild, NgZone, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as L from 'leaflet';
 import { FilterByGroupPipe } from './filter-by-group.pipe';
@@ -62,7 +62,7 @@ export interface ControlItem {
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css']
 })
-export class SidebarComponent implements AfterViewInit {
+export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
   @Input() map!: L.Map;
   @Output() toolSelected = new EventEmitter<string>();
   @ViewChild('sidebarElement') sidebarElement!: ElementRef;
@@ -75,15 +75,11 @@ export class SidebarComponent implements AfterViewInit {
   
   // Draggable sidebar properties
   isDragging = false;
-  currentX = 0;
-  currentY = 0;
-  initialX = 0;
-  initialY = 0;
-  xOffset = 0;
-  yOffset = 0;
+  dragOffset = { x: 0, y: 0 };
   
-  // Animation frame for smooth dragging
-  animationFrameId: number | null = null;
+  // Bound event handlers
+  private boundOnDrag: (event: MouseEvent | TouchEvent) => void;
+  private boundStopDrag: () => void;
   
   // Customization settings
   showCustomizationPanel = false;
@@ -223,7 +219,19 @@ export class SidebarComponent implements AfterViewInit {
   @Output() findLocationRequested = new EventEmitter<void>();
   @Output() favoritesControlToggled = new EventEmitter<void>();
   
-  constructor(private el: ElementRef, private ngZone: NgZone) {}
+  constructor(private el: ElementRef, private ngZone: NgZone) {
+    // Bind methods to this instance
+    this.boundOnDrag = this.onDrag.bind(this);
+    this.boundStopDrag = this.stopDrag.bind(this);
+  }
+  
+  ngOnInit(): void {
+    // Add global event listeners for drag
+    window.addEventListener('mousemove', this.boundOnDrag);
+    window.addEventListener('touchmove', this.boundOnDrag);
+    window.addEventListener('mouseup', this.boundStopDrag);
+    window.addEventListener('touchend', this.boundStopDrag);
+  }
   
   ngAfterViewInit(): void {
     // Try to load saved settings from localStorage
@@ -232,14 +240,21 @@ export class SidebarComponent implements AfterViewInit {
       try {
         const settings = JSON.parse(savedSettings);
         this.sidebarSettings = { ...this.sidebarSettings, ...settings };
-        this.xOffset = this.sidebarSettings.position.x;
-        this.yOffset = this.sidebarSettings.position.y;
+        this.setTranslate(this.sidebarSettings.position.x, this.sidebarSettings.position.y);
         this.applySettings();
       } catch (e) {
         console.error('Error parsing saved sidebar settings', e);
         localStorage.removeItem('sidebarSettings');
       }
     }
+  }
+  
+  ngOnDestroy(): void {
+    // Clean up event listeners when component is destroyed
+    window.removeEventListener('mousemove', this.boundOnDrag);
+    window.removeEventListener('touchmove', this.boundOnDrag);
+    window.removeEventListener('mouseup', this.boundStopDrag);
+    window.removeEventListener('touchend', this.boundStopDrag);
   }
   
   // Apply all current settings to the sidebar element
@@ -268,69 +283,90 @@ export class SidebarComponent implements AfterViewInit {
   
   // Save current settings to localStorage
   saveSettings(): void {
-    // Update position in settings
-    this.sidebarSettings.position = { x: this.xOffset, y: this.yOffset };
-    
     localStorage.setItem('sidebarSettings', JSON.stringify(this.sidebarSettings));
   }
   
   // Drag handlers
   dragStart(e: MouseEvent | TouchEvent): void {
-    if (e instanceof MouseEvent) {
-      this.initialX = e.clientX - this.xOffset;
-      this.initialY = e.clientY - this.yOffset;
-    } else {
-      this.initialX = e.touches[0].clientX - this.xOffset;
-      this.initialY = e.touches[0].clientY - this.yOffset;
-    }
-    
     const target = e.target as HTMLElement;
     if (e.target === this.sidebarElement.nativeElement || 
         target.classList.contains('drag-handle')) {
-      this.isDragging = true;
       
-      // Cancel any existing animation frame
-      if (this.animationFrameId !== null) {
-        cancelAnimationFrame(this.animationFrameId);
-      }
-    }
-  }
-  
-  drag(e: MouseEvent | TouchEvent): void {
-    if (this.isDragging) {
-      e.preventDefault();
-      
-      let clientX, clientY;
+      let clientX: number;
+      let clientY: number;
       
       if (e instanceof MouseEvent) {
         clientX = e.clientX;
         clientY = e.clientY;
       } else {
+        // Touch event
         clientX = e.touches[0].clientX;
         clientY = e.touches[0].clientY;
       }
       
-      // Calculate the new position
-      this.currentX = clientX - this.initialX;
-      this.currentY = clientY - this.initialY;
+      this.isDragging = true;
       
-      // Update offsets
-      this.xOffset = this.currentX;
-      this.yOffset = this.currentY;
+      this.dragOffset = {
+        x: clientX - this.sidebarSettings.position.x,
+        y: clientY - this.sidebarSettings.position.y
+      };
       
-      // Apply transform directly without animation frame
-      this.setTranslate(this.currentX, this.currentY);
+      // Prevent default to avoid text selection during drag
+      e.preventDefault();
     }
   }
   
-  dragEnd(e: MouseEvent | TouchEvent): void {
-    this.initialX = this.currentX;
-    this.initialY = this.currentY;
-    this.isDragging = false;
+  onDrag(e: MouseEvent | TouchEvent): void {
+    if (!this.isDragging) return;
     
-    // Update settings with new position
-    this.sidebarSettings.position = { x: this.xOffset, y: this.yOffset };
-    this.saveSettings();
+    let clientX: number;
+    let clientY: number;
+    
+    if (e instanceof MouseEvent) {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    } else {
+      // Touch event
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    }
+    
+    const newPosition = {
+      x: clientX - this.dragOffset.x,
+      y: clientY - this.dragOffset.y
+    };
+    
+    // Keep the sidebar within viewport bounds
+    const sidebarWidth = this.sidebarElement?.nativeElement.offsetWidth || 48;
+    const sidebarHeight = this.sidebarElement?.nativeElement.offsetHeight || 300;
+    
+    // Constrain x position
+    if (newPosition.x < 0) {
+      newPosition.x = 0;
+    } else if (newPosition.x + sidebarWidth > window.innerWidth) {
+      newPosition.x = window.innerWidth - sidebarWidth;
+    }
+    
+    // Constrain y position
+    if (newPosition.y < 0) {
+      newPosition.y = 0;
+    } else if (newPosition.y + sidebarHeight > window.innerHeight) {
+      newPosition.y = window.innerHeight - sidebarHeight;
+    }
+    
+    // Update the sidebar position
+    this.sidebarSettings.position = newPosition;
+    this.setTranslate(newPosition.x, newPosition.y);
+    
+    // Prevent default to avoid text selection during drag
+    e.preventDefault();
+  }
+  
+  stopDrag(): void {
+    if (this.isDragging) {
+      this.isDragging = false;
+      this.saveSettings();
+    }
   }
   
   setTranslate(xPos: number, yPos: number): void {
@@ -342,7 +378,7 @@ export class SidebarComponent implements AfterViewInit {
   setRotation(degrees: number): void {
     const sidebar = this.sidebarElement.nativeElement;
     this.sidebarSettings.rotation = degrees;
-    this.setTranslate(this.xOffset, this.yOffset); // This will apply rotation too
+    this.setTranslate(this.sidebarSettings.position.x, this.sidebarSettings.position.y); // This will apply rotation too
   }
   
   // Rotate by a specific angle increment
@@ -369,16 +405,16 @@ export class SidebarComponent implements AfterViewInit {
     this.applySettings();
   }
   
-  // Update opacity
-  setOpacity(opacity: number): void {
-    this.sidebarSettings.opacity = opacity;
+  // Set opacity
+  setOpacity(opacity: string | number): void {
+    const opacityValue = typeof opacity === 'string' ? parseFloat(opacity) : opacity;
+    this.sidebarSettings.opacity = opacityValue;
     this.applySettings();
+    this.saveSettings();
   }
   
   // Reset position to default
   resetPosition(): void {
-    this.xOffset = 0;
-    this.yOffset = 0;
     this.sidebarSettings.position = { x: 0, y: 0 };
     this.sidebarSettings.opacity = 1;
     this.sidebarSettings.theme = 'light';

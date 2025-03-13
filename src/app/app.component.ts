@@ -7,6 +7,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { GeoJsonControlComponent } from './components/geojson-control/geojson-control.component';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
+import { MeasurementModalComponent } from './components/measurement-modal/measurement-modal.component';
 
 interface FavoritePolygon {
   id: string;
@@ -17,7 +18,7 @@ interface FavoritePolygon {
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule, CommonModule, HttpClientModule, GeoJsonControlComponent, SidebarComponent],
+  imports: [FormsModule, CommonModule, HttpClientModule, GeoJsonControlComponent, SidebarComponent, MeasurementModalComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
   standalone: true
@@ -30,7 +31,7 @@ export class AppComponent implements AfterViewInit, OnInit {
   private layerControl!: L.Control.Layers;
   private searchMarker: L.Marker | null = null;
   private locationMarker: L.Marker | null = null;
-  private measurePoints: L.Marker[] = [];
+  public measurePoints: L.Layer[] = [];
   private measureLine: L.Polyline | null = null;
   private searchSubject = new Subject<string>();
   private measureMode = false;
@@ -90,6 +91,33 @@ export class AppComponent implements AfterViewInit, OnInit {
   dataSendingControlActive = false;
   settingsControlActive = false;
   favoritesControlActive = false;
+
+  private measurementIcon = L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    iconSize: [20, 32],  // Reduced size
+    iconAnchor: [10, 32],
+    popupAnchor: [1, -32],
+    shadowSize: [32, 32]
+  });
+
+  private searchIcon = L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+  });
+
+  private polygonIcon = L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+  });
 
   constructor(private http: HttpClient) {
     // Set up search with debounce
@@ -676,33 +704,32 @@ export class AppComponent implements AfterViewInit, OnInit {
     const lat = e.latlng.lat;
     const lng = e.latlng.lng;
     
-    // Create marker at click location
-    const marker = L.marker([lat, lng], {
-      icon: L.icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-      })
+    // Create a custom green circular marker for measurement points
+    const circleMarker = L.circleMarker([lat, lng], {
+      radius: 8,
+      fillColor: '#4CAF50',
+      color: '#fff',
+      weight: 2,
+      opacity: 1,
+      fillOpacity: 1
     }).addTo(this.map);
     
-    this.measurePoints.push(marker);
+    this.measurePoints.push(circleMarker);
     
     // If we have at least 2 points, draw/update the line
     if (this.measurePoints.length >= 2) {
-      const points = this.measurePoints.map(marker => marker.getLatLng());
+      const points = this.measurePoints.map(marker => (marker as L.CircleMarker).getLatLng());
       
       if (this.measureLine) {
         this.map.removeLayer(this.measureLine);
       }
       
       this.measureLine = L.polyline(points, {
-        color: '#4263eb',
+        color: '#4285F4',
         weight: 3,
-        opacity: 0.7,
-        dashArray: '5, 10'
+        opacity: 0.8,
+        lineJoin: 'round',
+        lineCap: 'round'
       }).addTo(this.map);
       
       // Calculate total distance
@@ -734,12 +761,43 @@ export class AppComponent implements AfterViewInit, OnInit {
     
     let totalDistance = 0;
     for (let i = 0; i < this.measurePoints.length - 1; i++) {
-      const point1 = this.measurePoints[i].getLatLng();
-      const point2 = this.measurePoints[i + 1].getLatLng();
+      const point1 = (this.measurePoints[i] as L.CircleMarker).getLatLng();
+      const point2 = (this.measurePoints[i + 1] as L.CircleMarker).getLatLng();
       totalDistance += point1.distanceTo(point2);
     }
     
     this.measureDistance = totalDistance;
+  }
+
+  undoLastMeasurementPoint(): void {
+    if (this.measurePoints.length === 0) return;
+    
+    // Remove the last marker
+    const lastMarker = this.measurePoints.pop();
+    if (lastMarker) {
+      this.map.removeLayer(lastMarker);
+    }
+    
+    // Update or remove the line
+    if (this.measurePoints.length >= 2) {
+      const points = this.measurePoints.map(marker => (marker as L.CircleMarker).getLatLng());
+      if (this.measureLine) {
+        this.map.removeLayer(this.measureLine);
+      }
+      this.measureLine = L.polyline(points, {
+        color: '#4285F4',
+        weight: 3,
+        opacity: 0.8,
+        lineJoin: 'round',
+        lineCap: 'round'
+      }).addTo(this.map);
+    } else if (this.measureLine) {
+      this.map.removeLayer(this.measureLine);
+      this.measureLine = null;
+    }
+    
+    // Recalculate distance
+    this.calculateTotalDistance();
   }
 
   private initializeMap(): void {

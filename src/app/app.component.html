@@ -12,6 +12,16 @@
              (favoritesControlToggled)="toggleFavoritesControl()"
              (findLocationRequested)="findMyLocation()"></app-sidebar>
 
+<!-- Measurement Modal Component -->
+<app-measurement-modal
+  [isVisible]="showMeasureControl"
+  [distance]="measureDistance"
+  [canUndo]="measurePoints.length > 0"
+  (close)="toggleMeasureControl()"
+  (clear)="clearMeasurement()"
+  (undo)="undoLastMeasurementPoint()">
+</app-measurement-modal>
+
 <!-- Control panels will be displayed here but not in a control-panel div -->
 
   
@@ -72,93 +82,25 @@
     </div>
   </div>
   
-  <!-- Measurement Control Panel -->
-  <div *ngIf="showMeasureControl" class="control-panel-content">
-    <h3>Distance Measurement</h3>
-    <p class="instruction-text">
-      <i class="fa fa-info-circle"></i> Click on the map to place measurement points
-    </p>
-    <div *ngIf="measureDistance > 0" class="measurement-result">
-      <i class="fa fa-ruler-horizontal"></i>
-      <strong>Total Distance:</strong> {{ measureDistance | number:'1.2-2' }} meters
-      <span *ngIf="measureDistance >= 1000">({{ measureDistance / 1000 | number:'1.2-2' }} km)</span>
-    </div>
-    <button (click)="clearMeasurement()" class="secondary-button">
-      <i class="fa fa-trash-alt"></i> Clear Measurement
-    </button>
-  </div>
-  
   <!-- GeoJSON Control Panel -->
   <div *ngIf="showGeoJsonControl" class="control-panel-content">
+    <h3>GeoJSON Control</h3>
     <app-geojson-control [map]="map"></app-geojson-control>
   </div>
   
-  <!-- Polygon Drawing Control Panel -->
+  <!-- Polygon Control Panel -->
   <div *ngIf="showPolygonControl" class="control-panel-content">
-    <h3>Draw Polygon</h3>
+    <h3>Polygon Drawing</h3>
     <p class="instruction-text">
       <i class="fa fa-info-circle"></i> Click on the map to add polygon points
     </p>
     <div class="polygon-actions">
       <button (click)="finishPolygonDrawing()" class="primary-button">
-        <i class="fa fa-check"></i> Finish Polygon
+        <i class="fa fa-check"></i> Finish
       </button>
       <button (click)="cancelPolygonDrawing()" class="secondary-button">
         <i class="fa fa-times"></i> Cancel
       </button>
-    </div>
-  </div>
-
-  <!-- Polygon Name Input -->
-  <div *ngIf="showPolygonNameInput" class="control-panel-content">
-    <h3>Save Polygon</h3>
-    <div class="input-group">
-      <input type="text" [(ngModel)]="newPolygonName" placeholder="Enter polygon name" class="form-input">
-      <div class="button-group">
-        <button (click)="savePolygonAsFavorite()" class="primary-button">
-          <i class="fa fa-save"></i> Save
-        </button>
-        <button (click)="showPolygonNameInput = false" class="secondary-button">
-          <i class="fa fa-times"></i> Cancel
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Favorites Control Panel -->
-  <div *ngIf="showFavoritesControl" class="control-panel-content">
-    <h3>Favorite Polygons</h3>
-    <div class="favorites-list">
-      <div *ngIf="favoritePolygons.length === 0" class="no-favorites">
-        <i class="fa fa-star"></i>
-        <p>No favorite polygons yet</p>
-      </div>
-      <div *ngFor="let favorite of favoritePolygons" 
-           class="favorite-item"
-           [class.active]="favorite.id === currentPolygonId">
-        <div class="favorite-info">
-          <h4>
-            {{ favorite.name }}
-            <span *ngIf="favorite.id === currentPolygonId" class="current-badge">
-              <i class="fa fa-check"></i> Current
-            </span>
-          </h4>
-          <small>Created: {{ favorite.createdAt | date:'short' }}</small>
-        </div>
-        <div class="favorite-actions">
-          <button (click)="loadFavoritePolygon(favorite)" 
-                  class="icon-button" 
-                  [class.active]="favorite.id === currentPolygonId"
-                  title="Load">
-            <i class="fa fa-map-marker-alt"></i>
-          </button>
-          <button (click)="deleteFavoritePolygon(favorite)" 
-                  class="icon-button delete" 
-                  title="Delete">
-            <i class="fa fa-trash"></i>
-          </button>
-        </div>
-      </div>
     </div>
   </div>
   
@@ -167,7 +109,7 @@
     <h3>API Settings</h3>
     <div class="settings-form">
       <div class="form-group">
-        <label for="apiUrl">API Endpoint URL</label>
+        <label for="apiUrl">API Endpoint</label>
         <input type="text" id="apiUrl" [(ngModel)]="apiSettings.apiUrl" placeholder="Enter API URL">
       </div>
       <div class="form-group">
@@ -181,5 +123,52 @@
       <button (click)="saveSettings()" class="success-button">
         <i class="fa fa-save"></i> Save Settings
       </button>
+    </div>
+  </div>
+  
+  <!-- Favorites Control Panel -->
+  <div *ngIf="showFavoritesControl" class="control-panel-content">
+    <h3>Favorite Polygons</h3>
+    <div *ngIf="favoritePolygons.length === 0" class="no-favorites">
+      <i class="fa fa-star"></i>
+      <p>No favorite polygons saved yet.</p>
+      <p>Draw a polygon and save it to see it here.</p>
+    </div>
+    <div *ngIf="favoritePolygons.length > 0" class="favorites-list">
+      <div *ngFor="let favorite of favoritePolygons" class="favorite-item" [class.active]="currentPolygonId === favorite.id">
+        <div class="favorite-info">
+          <h4>
+            {{ favorite.name }}
+            <span *ngIf="currentPolygonId === favorite.id" class="current-badge">
+              <i class="fa fa-check"></i> Current
+            </span>
+          </h4>
+          <small>{{ favorite.createdAt | date:'short' }}</small>
+        </div>
+        <div class="favorite-actions">
+          <button class="icon-button" (click)="loadFavoritePolygon(favorite)" title="Load this polygon">
+            <i class="fa fa-map-marker-alt"></i>
+          </button>
+          <button class="icon-button delete" (click)="deleteFavoritePolygon(favorite)" title="Delete this polygon">
+            <i class="fa fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Polygon Name Input -->
+  <div *ngIf="showPolygonNameInput" class="control-panel-content">
+    <h3>Save Polygon</h3>
+    <div class="input-group">
+      <input type="text" class="form-input" [(ngModel)]="newPolygonName" placeholder="Enter a name for this polygon">
+      <div class="button-group">
+        <button (click)="savePolygonAsFavorite()" class="success-button">
+          <i class="fa fa-save"></i> Save
+        </button>
+        <button (click)="showPolygonNameInput = false" class="secondary-button">
+          <i class="fa fa-times"></i> Cancel
+        </button>
+      </div>
     </div>
   </div>

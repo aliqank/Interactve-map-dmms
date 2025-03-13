@@ -26,6 +26,13 @@
     transform-origin: center; /* Sets rotation origin to center */
 }
 
+/* Dragging state */
+.sidebar.dragging {
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    opacity: 0.9;
+    transition: none; /* Disable transitions during drag for smoother movement */
+}
+
 /* Counter-rotate icons to maintain original orientation */
 .sidebar .map-control-icon i,
 .sidebar .drag-handle i {

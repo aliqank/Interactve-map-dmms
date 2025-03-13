@@ -6,13 +6,9 @@
      [class.rotate-90]="sidebarSettings.rotation === 90"
      [class.rotate-180]="sidebarSettings.rotation === 180"
      [class.rotate-270]="sidebarSettings.rotation === 270"
+     [class.dragging]="isDragging"
      (mousedown)="dragStart($event)" 
-     (touchstart)="dragStart($event)"
-     (mousemove)="drag($event)"
-     (touchmove)="drag($event)"
-     (mouseup)="dragEnd($event)"
-     (touchend)="dragEnd($event)"
-     (mouseleave)="dragEnd($event)">
+     (touchstart)="dragStart($event)">
   
   <div class="drag-handle" title="Drag to move sidebar">
     <i class="fa" [ngClass]="SidebarIcon.DRAG"></i>
@@ -46,69 +42,50 @@
 </div>
 
 <!-- Customization Panel -->
-<div class="customization-panel" *ngIf="showCustomizationPanel">
-  <div class="customization-header">
+<div *ngIf="showCustomizationPanel" class="customization-panel">
+  <div class="panel-header">
     <h3>Customize Sidebar</h3>
     <button class="close-button" (click)="toggleCustomizationPanel()">
       <i class="fa" [ngClass]="SidebarIcon.CLOSE"></i>
     </button>
   </div>
   
-  <div class="customization-content">
-    <!-- Theme Selection -->
-    <div class="customization-section">
+  <div class="panel-content">
+    <div class="option-group">
       <h4>Theme</h4>
       <div class="theme-options">
-        <button class="theme-option" 
-                [class.active]="sidebarSettings.theme === 'light'"
-                (click)="setTheme('light')">
-          Light
+        <button class="theme-option" [class.active]="sidebarSettings.theme === 'light'" (click)="setTheme('light')">
+          <div class="theme-preview light"></div>
+          <span>Light</span>
         </button>
-        <button class="theme-option" 
-                [class.active]="sidebarSettings.theme === 'dark'"
-                (click)="setTheme('dark')">
-          Dark
+        <button class="theme-option" [class.active]="sidebarSettings.theme === 'dark'" (click)="setTheme('dark')">
+          <div class="theme-preview dark"></div>
+          <span>Dark</span>
         </button>
       </div>
     </div>
     
-    <!-- Opacity Slider -->
-    <div class="customization-section">
-      <h4>Opacity: {{sidebarSettings.opacity.toFixed(1)}}</h4>
-      <input type="range" 
-             min="0.3" 
-             max="1" 
-             step="0.1" 
-             [value]="sidebarSettings.opacity"
-             (input)="setOpacity(+$any($event.target).value)">
-    </div>
-    
-    <!-- Rotation Controls -->
-    <div class="customization-section">
+    <div class="option-group">
       <h4>Rotation</h4>
-      <button class="rotation-preset-button" 
-              (click)="rotateBy(90)">
-        Rotate Sidebar
-      </button>
-    </div>
-    
-    <!-- Expanded Toggle -->
-    <div class="customization-section">
-      <div class="toggle-control">
-        <label>Expanded View</label>
-        <button class="toggle-button" 
-                [class.active]="sidebarSettings.expanded"
-                (click)="toggleExpanded()">
-          {{ sidebarSettings.expanded ? 'On' : 'Off' }}
+      <div class="rotation-options">
+        <button *ngFor="let angle of rotationPresets" 
+                class="rotation-option" 
+                [class.active]="sidebarSettings.rotation === angle"
+                (click)="setRotation(angle)">
+          <i class="fa fa-sync-alt" [style.transform]="'rotate(' + angle + 'deg)'"></i>
+          <span>{{ angle }}°</span>
         </button>
       </div>
     </div>
     
-    <!-- Reset Button -->
-    <div class="customization-section">
-      <button class="reset-button" (click)="resetPosition()">
-        Reset All Settings
-      </button>
+    <div class="option-group">
+      <h4>Opacity</h4>
+      <input type="range" min="0.5" max="1" step="0.1" [value]="sidebarSettings.opacity" (input)="setOpacity($any($event.target).value)">
     </div>
+    
+    <button class="reset-button" (click)="resetPosition()">
+      <i class="fa" [ngClass]="SidebarIcon.RESET"></i>
+      Reset Position
+    </button>
   </div>
 </div>
