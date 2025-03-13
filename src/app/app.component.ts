@@ -930,7 +930,7 @@ export class AppComponent implements AfterViewInit, OnInit {
           this.showToast('Coordinates sent successfully', 'success');
           
           // Auto-close popup after success
-          setTimeout(() => popup.close(), 2000);
+          setTimeout(() => popup.close(), 500);
         } else {
           console.error('API returned error:', response?.errors || 'Unknown error');
           popup.setContent(`
