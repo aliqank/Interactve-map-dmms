@@ -8,6 +8,13 @@ import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { GeoJsonControlComponent } from './components/geojson-control/geojson-control.component';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 
+interface FavoritePolygon {
+  id: string;
+  name: string;
+  coordinates: { lat: number; lng: number; }[];
+  createdAt: string;
+}
+
 @Component({
   selector: 'app-root',
   imports: [FormsModule, CommonModule, HttpClientModule, GeoJsonControlComponent, SidebarComponent],
@@ -47,9 +54,16 @@ export class AppComponent implements AfterViewInit, OnInit {
   showPolygonControl = false;
   showDataSendingControl = false;
   showSettingsControl = false;
+  showFavoritesControl = false;
   measureDistance = 0;
   isSearching = false;
   private dataSendingMode = false;
+  
+  // Favorite polygons
+  favoritePolygons: FavoritePolygon[] = [];
+  newPolygonName = '';
+  showPolygonNameInput = false;
+  currentPolygonId: string | null = null;
   
   // API Settings
   apiSettings = {
@@ -67,6 +81,15 @@ export class AppComponent implements AfterViewInit, OnInit {
   private get coordinates() {
     return this.coordinatesInput.map(coord => L.latLng(coord.lat, coord.lng));
   }
+
+  layerControlActive = false;
+  searchControlActive = false;
+  measureControlActive = false;
+  geoJsonControlActive = false;
+  polygonControlActive = false;
+  dataSendingControlActive = false;
+  settingsControlActive = false;
+  favoritesControlActive = false;
 
   constructor(private http: HttpClient) {
     // Set up search with debounce
@@ -112,6 +135,27 @@ export class AppComponent implements AfterViewInit, OnInit {
         this.apiSettings = JSON.parse(savedApiSettings);
       } catch (error) {
         console.error('Error parsing saved API settings:', error);
+      }
+    }
+
+    // Load favorite polygons from localStorage
+    const savedFavorites = localStorage.getItem('favoritePolygons');
+    if (savedFavorites) {
+      try {
+        this.favoritePolygons = JSON.parse(savedFavorites);
+      } catch (error) {
+        console.error('Error parsing saved favorite polygons:', error);
+      }
+    }
+
+    // Load current polygon ID from localStorage and set its coordinates
+    const savedCurrentPolygonId = localStorage.getItem('currentPolygonId');
+    if (savedCurrentPolygonId) {
+      this.currentPolygonId = savedCurrentPolygonId;
+      // Find the matching favorite polygon
+      const currentPolygon = this.favoritePolygons.find(fp => fp.id === savedCurrentPolygonId);
+      if (currentPolygon) {
+        this.coordinatesInput = [...currentPolygon.coordinates];
       }
     }
   }
@@ -208,13 +252,32 @@ export class AppComponent implements AfterViewInit, OnInit {
   }
   
   toggleSettingsControl(): void {
-    this.showSettingsControl = !this.showSettingsControl;
+    this.settingsControlActive = !this.settingsControlActive;
+    if (this.settingsControlActive) {
+      this.resetOtherControls('settings');
+    }
+  }
+  
+  toggleFavoritesControl(): void {
+    this.showFavoritesControl = !this.showFavoritesControl;
     this.showLayerControl = false;
     this.showSearchControl = false;
     this.showMeasureControl = false;
     this.showGeoJsonControl = false;
     this.showPolygonControl = false;
     this.showDataSendingControl = false;
+    this.showSettingsControl = false;
+  }
+  
+  resetOtherControls(activeControl: string) {
+    if (activeControl !== 'layers') this.layerControlActive = false;
+    if (activeControl !== 'search') this.searchControlActive = false;
+    if (activeControl !== 'measure') this.measureControlActive = false;
+    if (activeControl !== 'geojson') this.geoJsonControlActive = false;
+    if (activeControl !== 'polygon') this.polygonControlActive = false;
+    if (activeControl !== 'dataSending') this.dataSendingControlActive = false;
+    if (activeControl !== 'settings') this.settingsControlActive = false;
+    if (activeControl !== 'favorites') this.favoritesControlActive = false;
   }
   
   handleToolSelection(toolId: string): void {
@@ -327,19 +390,63 @@ export class AppComponent implements AfterViewInit, OnInit {
       lng: point.lng
     }));
 
-    // Save polygon coordinates to localStorage for persistence
-    localStorage.setItem('polygonCoordinates', JSON.stringify(this.coordinatesInput));
+    // Show polygon name input
+    this.showPolygonNameInput = true;
+    this.showToast('Enter a name for your polygon to save it as favorite', 'info');
+  }
 
-    // Clear temporary drawing
+  savePolygonAsFavorite(): void {
+    if (!this.newPolygonName.trim()) {
+      this.showToast('Please enter a name for the polygon', 'error');
+      return;
+    }
+
+    const newFavorite: FavoritePolygon = {
+      id: Date.now().toString(),
+      name: this.newPolygonName.trim(),
+      coordinates: [...this.coordinatesInput],
+      createdAt: new Date().toISOString()
+    };
+
+    this.favoritePolygons.push(newFavorite);
+    localStorage.setItem('favoritePolygons', JSON.stringify(this.favoritePolygons));
+    this.currentPolygonId = newFavorite.id;
+    localStorage.setItem('currentPolygonId', newFavorite.id);
+
+    // Clear temporary drawing and reset state
     this.clearTempPolygon();
     this.drawPolygonMode = false;
     this.showPolygonControl = false;
+    this.showPolygonNameInput = false;
+    this.newPolygonName = '';
 
     // Update the map borders
     this.updateBorders();
-    this.showToast('Polygon created successfully', 'success');
+    this.showToast('Polygon saved as favorite!', 'success');
   }
-  
+
+  loadFavoritePolygon(favorite: FavoritePolygon): void {
+    this.coordinatesInput = [...favorite.coordinates];
+    this.currentPolygonId = favorite.id;
+    localStorage.setItem('currentPolygonId', favorite.id);
+    this.updateBorders();
+    this.showToast(`Loaded polygon: ${favorite.name}`, 'success');
+  }
+
+  deleteFavoritePolygon(favorite: FavoritePolygon): void {
+    // If deleting the current polygon, clear the current polygon
+    if (this.currentPolygonId === favorite.id) {
+      this.coordinatesInput = [];
+      this.currentPolygonId = null;
+      localStorage.removeItem('currentPolygonId');
+      this.updateBorders();
+    }
+
+    this.favoritePolygons = this.favoritePolygons.filter(p => p.id !== favorite.id);
+    localStorage.setItem('favoritePolygons', JSON.stringify(this.favoritePolygons));
+    this.showToast(`Deleted polygon: ${favorite.name}`, 'success');
+  }
+
   // Change the map layer
   changeMapLayer(layerType: string): void {
     this.selectedLayer = layerType;
@@ -521,15 +628,43 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   // Update borders method
   private updateBorders(): void {
-    // Implementation for updating map borders with the polygon
-    if (this.coordinates.length < 3) return;
+    // Remove existing polygon if any
+    if (this.map) {
+      this.map.eachLayer((layer) => {
+        if (layer instanceof L.Polygon) {
+          this.map.removeLayer(layer);
+        }
+      });
+    }
+
+    // If no coordinates, return
+    if (!this.coordinatesInput || this.coordinatesInput.length < 3) return;
     
     // Create a polygon with the coordinates
     const polygon = L.polygon(this.coordinates, {
-      color: '#4263eb',
+      color: this.currentPolygonId ? '#4263eb' : '#6c757d',
       weight: 3,
       fillOpacity: 0.1
     }).addTo(this.map);
+
+    // Add click handler to the polygon
+    polygon.on('click', () => {
+      // Find the favorite polygon that matches these coordinates
+      const matchingFavorite = this.favoritePolygons.find(fp => 
+        fp.coordinates.length === this.coordinatesInput.length &&
+        fp.coordinates.every((coord, index) => 
+          coord.lat === this.coordinatesInput[index].lat &&
+          coord.lng === this.coordinatesInput[index].lng
+        )
+      );
+
+      if (matchingFavorite) {
+        this.currentPolygonId = matchingFavorite.id;
+        localStorage.setItem('currentPolygonId', matchingFavorite.id);
+        this.showToast(`Selected polygon: ${matchingFavorite.name}`, 'success');
+        this.updateBorders(); // Refresh to update colors
+      }
+    });
     
     // Fit the map to the polygon bounds
     this.map.flyToBounds(polygon.getBounds());

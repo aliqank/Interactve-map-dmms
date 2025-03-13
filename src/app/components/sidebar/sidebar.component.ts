@@ -10,6 +10,17 @@ interface SidebarSettings {
   rotation: number;
 }
 
+export interface MapControls {
+  showLayerControl: boolean;
+  showSearchControl: boolean;
+  showMeasureControl: boolean;
+  showGeoJsonControl: boolean;
+  showPolygonControl: boolean;
+  showDataSendingControl: boolean;
+  showSettingsControl: boolean;
+  showFavoritesControl: boolean;
+}
+
 @Component({
   selector: 'app-sidebar',
   standalone: true,
@@ -59,7 +70,8 @@ export class SidebarComponent implements AfterViewInit {
     showGeoJsonControl: false,
     showPolygonControl: false,
     showDataSendingControl: false,
-    showSettingsControl: false
+    showSettingsControl: false,
+    showFavoritesControl: false
   };
   
   // Map control events
@@ -71,6 +83,7 @@ export class SidebarComponent implements AfterViewInit {
   @Output() dataSendingControlToggled = new EventEmitter<void>();
   @Output() settingsControlToggled = new EventEmitter<void>();
   @Output() findLocationRequested = new EventEmitter<void>();
+  @Output() favoritesControlToggled = new EventEmitter<void>();
   
   constructor(private el: ElementRef, private ngZone: NgZone) {}
   
@@ -284,6 +297,9 @@ export class SidebarComponent implements AfterViewInit {
         case 'settings':
           this.mapControls.showSettingsControl = true;
           break;
+        case 'favorites':
+          this.mapControls.showFavoritesControl = true;
+          break;
       }
     }
     
@@ -309,6 +325,9 @@ export class SidebarComponent implements AfterViewInit {
         break;
       case 'settings':
         this.settingsControlToggled.emit();
+        break;
+      case 'favorites':
+        this.favoritesControlToggled.emit();
         break;
     }
   }

@@ -73,6 +73,16 @@
         </div>
       </div>
       
+      <!-- Favorites control -->
+      <div class="map-control-item" 
+           [class.active]="mapControls.showFavoritesControl" 
+           (click)="toggleMapControl('favorites')" 
+           title="Favorite Polygons">
+        <div class="map-control-icon">
+          <i class="fa fa-star"></i>
+        </div>
+      </div>
+      
       <!-- Data sending control -->
       <div class="map-control-item" 
            [class.active]="mapControls.showDataSendingControl" 

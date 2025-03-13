@@ -9,6 +9,7 @@
              (polygonControlToggled)="togglePolygonControl()"
              (dataSendingControlToggled)="toggleDataSendingControl()"
              (settingsControlToggled)="toggleSettingsControl()"
+             (favoritesControlToggled)="toggleFavoritesControl()"
              (findLocationRequested)="findMyLocation()"></app-sidebar>
 
 <!-- Control panels will be displayed here but not in a control-panel div -->
@@ -107,18 +108,59 @@
       </button>
     </div>
   </div>
-  
-  <!-- Data Sending Control Panel -->
-  <!-- <div *ngIf="showDataSendingControl" class="control-panel-content">
-    <h3>Send Coordinates to API</h3>
-    <p class="instruction-text">
-      <i class="fa fa-info-circle"></i> Click on the map to send coordinates to the API
-    </p>
-    <div class="data-sending-info">
-      <p><strong>API Endpoint:</strong> {{apiSettings.apiUrl}}</p>
-      <p><strong>Status:</strong> <span class="status-active">Active</span></p>
+
+  <!-- Polygon Name Input -->
+  <div *ngIf="showPolygonNameInput" class="control-panel-content">
+    <h3>Save Polygon</h3>
+    <div class="input-group">
+      <input type="text" [(ngModel)]="newPolygonName" placeholder="Enter polygon name" class="form-input">
+      <div class="button-group">
+        <button (click)="savePolygonAsFavorite()" class="primary-button">
+          <i class="fa fa-save"></i> Save
+        </button>
+        <button (click)="showPolygonNameInput = false" class="secondary-button">
+          <i class="fa fa-times"></i> Cancel
+        </button>
+      </div>
     </div>
-  </div> -->
+  </div>
+
+  <!-- Favorites Control Panel -->
+  <div *ngIf="showFavoritesControl" class="control-panel-content">
+    <h3>Favorite Polygons</h3>
+    <div class="favorites-list">
+      <div *ngIf="favoritePolygons.length === 0" class="no-favorites">
+        <i class="fa fa-star"></i>
+        <p>No favorite polygons yet</p>
+      </div>
+      <div *ngFor="let favorite of favoritePolygons" 
+           class="favorite-item"
+           [class.active]="favorite.id === currentPolygonId">
+        <div class="favorite-info">
+          <h4>
+            {{ favorite.name }}
+            <span *ngIf="favorite.id === currentPolygonId" class="current-badge">
+              <i class="fa fa-check"></i> Current
+            </span>
+          </h4>
+          <small>Created: {{ favorite.createdAt | date:'short' }}</small>
+        </div>
+        <div class="favorite-actions">
+          <button (click)="loadFavoritePolygon(favorite)" 
+                  class="icon-button" 
+                  [class.active]="favorite.id === currentPolygonId"
+                  title="Load">
+            <i class="fa fa-map-marker-alt"></i>
+          </button>
+          <button (click)="deleteFavoritePolygon(favorite)" 
+                  class="icon-button delete" 
+                  title="Delete">
+            <i class="fa fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
   
   <!-- Settings Control Panel -->
   <div *ngIf="showSettingsControl" class="control-panel-content">
