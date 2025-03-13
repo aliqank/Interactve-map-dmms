@@ -1,6 +1,14 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, AfterViewInit, ElementRef, ViewChild, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as L from 'leaflet';
+
+interface SidebarSettings {
+  position: { x: number, y: number };
+  opacity: number;
+  theme: 'light' | 'dark';
+  expanded: boolean;
+  rotation: number;
+}
 
 @Component({
   selector: 'app-sidebar',
@@ -9,11 +17,39 @@ import * as L from 'leaflet';
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css']
 })
-export class SidebarComponent {
+export class SidebarComponent implements AfterViewInit {
   @Input() map!: L.Map;
   @Output() toolSelected = new EventEmitter<string>();
+  @ViewChild('sidebarElement') sidebarElement!: ElementRef;
   
   activeToolId: string | null = null;
+  
+  // Draggable sidebar properties
+  isDragging = false;
+  currentX = 0;
+  currentY = 0;
+  initialX = 0;
+  initialY = 0;
+  xOffset = 0;
+  yOffset = 0;
+  
+  // Animation frame for smooth dragging
+  animationFrameId: number | null = null;
+  
+  // Customization settings
+  showCustomizationPanel = false;
+  
+  // Default sidebar settings
+  sidebarSettings: SidebarSettings = {
+    position: { x: 0, y: 0 },
+    opacity: 1,
+    theme: 'light',
+    expanded: false,
+    rotation: 0
+  };
+  
+  // Predefined rotation angles
+  rotationPresets = [0, 90, 180, 270];
   
   // Map control states
   mapControls = {
@@ -36,7 +72,175 @@ export class SidebarComponent {
   @Output() settingsControlToggled = new EventEmitter<void>();
   @Output() findLocationRequested = new EventEmitter<void>();
   
-  constructor() {}
+  constructor(private el: ElementRef, private ngZone: NgZone) {}
+  
+  ngAfterViewInit(): void {
+    // Try to load saved settings from localStorage
+    const savedSettings = localStorage.getItem('sidebarSettings');
+    if (savedSettings) {
+      try {
+        const settings = JSON.parse(savedSettings);
+        this.sidebarSettings = { ...this.sidebarSettings, ...settings };
+        this.xOffset = this.sidebarSettings.position.x;
+        this.yOffset = this.sidebarSettings.position.y;
+        this.applySettings();
+      } catch (e) {
+        console.error('Error parsing saved sidebar settings', e);
+        localStorage.removeItem('sidebarSettings');
+      }
+    }
+  }
+  
+  // Apply all current settings to the sidebar element
+  applySettings(): void {
+    const sidebar = this.sidebarElement.nativeElement;
+    
+    // Position
+    this.setTranslate(this.sidebarSettings.position.x, this.sidebarSettings.position.y);
+    
+    // Appearance
+    sidebar.style.opacity = this.sidebarSettings.opacity.toString();
+    
+    // Theme
+    sidebar.classList.remove('theme-light', 'theme-dark');
+    sidebar.classList.add(`theme-${this.sidebarSettings.theme}`);
+    
+    // Expanded state
+    sidebar.classList.toggle('expanded', this.sidebarSettings.expanded);
+    
+    // Rotation
+    this.setRotation(this.sidebarSettings.rotation);
+    
+    // Save settings
+    this.saveSettings();
+  }
+  
+  // Save current settings to localStorage
+  saveSettings(): void {
+    // Update position in settings
+    this.sidebarSettings.position = { x: this.xOffset, y: this.yOffset };
+    
+    localStorage.setItem('sidebarSettings', JSON.stringify(this.sidebarSettings));
+  }
+  
+  // Drag handlers
+  dragStart(e: MouseEvent | TouchEvent): void {
+    if (e instanceof MouseEvent) {
+      this.initialX = e.clientX - this.xOffset;
+      this.initialY = e.clientY - this.yOffset;
+    } else {
+      this.initialX = e.touches[0].clientX - this.xOffset;
+      this.initialY = e.touches[0].clientY - this.yOffset;
+    }
+    
+    const target = e.target as HTMLElement;
+    if (e.target === this.sidebarElement.nativeElement || 
+        target.classList.contains('drag-handle')) {
+      this.isDragging = true;
+      
+      // Cancel any existing animation frame
+      if (this.animationFrameId !== null) {
+        cancelAnimationFrame(this.animationFrameId);
+      }
+    }
+  }
+  
+  drag(e: MouseEvent | TouchEvent): void {
+    if (this.isDragging) {
+      e.preventDefault();
+      
+      let clientX, clientY;
+      
+      if (e instanceof MouseEvent) {
+        clientX = e.clientX;
+        clientY = e.clientY;
+      } else {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      }
+      
+      // Calculate the new position
+      this.currentX = clientX - this.initialX;
+      this.currentY = clientY - this.initialY;
+      
+      // Update offsets
+      this.xOffset = this.currentX;
+      this.yOffset = this.currentY;
+      
+      // Apply transform directly without animation frame
+      this.setTranslate(this.currentX, this.currentY);
+    }
+  }
+  
+  dragEnd(e: MouseEvent | TouchEvent): void {
+    this.initialX = this.currentX;
+    this.initialY = this.currentY;
+    this.isDragging = false;
+    
+    // Update settings with new position
+    this.sidebarSettings.position = { x: this.xOffset, y: this.yOffset };
+    this.saveSettings();
+  }
+  
+  setTranslate(xPos: number, yPos: number): void {
+    const sidebar = this.sidebarElement.nativeElement;
+    sidebar.style.transform = `translate3d(${xPos}px, ${yPos}px, 0) rotate(${this.sidebarSettings.rotation}deg)`;
+  }
+  
+  // Set rotation directly
+  setRotation(degrees: number): void {
+    const sidebar = this.sidebarElement.nativeElement;
+    this.sidebarSettings.rotation = degrees;
+    this.setTranslate(this.xOffset, this.yOffset); // This will apply rotation too
+  }
+  
+  // Rotate by a specific angle increment
+  rotateBy(degrees: number): void {
+    let newRotation = (this.sidebarSettings.rotation + degrees) % 360;
+    if (newRotation < 0) newRotation += 360;
+    
+    // Ensure rotation is always a multiple of 90 degrees
+    newRotation = Math.round(newRotation / 90) * 90;
+    
+    this.setRotation(newRotation);
+    this.saveSettings();
+  }
+  
+  // Toggle expanded state
+  toggleExpanded(): void {
+    this.sidebarSettings.expanded = !this.sidebarSettings.expanded;
+    this.applySettings();
+  }
+  
+  // Change theme
+  setTheme(theme: 'light' | 'dark'): void {
+    this.sidebarSettings.theme = theme;
+    this.applySettings();
+  }
+  
+  // Update opacity
+  setOpacity(opacity: number): void {
+    this.sidebarSettings.opacity = opacity;
+    this.applySettings();
+  }
+  
+  // Reset position to default
+  resetPosition(): void {
+    this.xOffset = 0;
+    this.yOffset = 0;
+    this.sidebarSettings.position = { x: 0, y: 0 };
+    this.sidebarSettings.opacity = 1;
+    this.sidebarSettings.theme = 'light';
+    this.sidebarSettings.expanded = false;
+    this.sidebarSettings.rotation = 0;
+    this.applySettings();
+    localStorage.removeItem('sidebarSettings');
+  }
+  
+  // Toggle customization panel
+  toggleCustomizationPanel(): void {
+    this.showCustomizationPanel = !this.showCustomizationPanel;
+  }
   
   selectTool(toolId: string): void {
     this.activeToolId = this.activeToolId === toolId ? null : toolId;
