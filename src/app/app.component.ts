@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit, Renderer2 } from '@angular/core';
 import * as L from 'leaflet';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -119,7 +119,18 @@ export class AppComponent implements AfterViewInit, OnInit {
     shadowSize: [41, 41]
   });
 
-  constructor(private http: HttpClient) {
+  // Add apiError property
+  apiError = false;
+
+  // Add properties for modal dragging
+  private modalDragging = false;
+  private activeModal: HTMLElement | null = null;
+  private modalOffset = { x: 0, y: 0 };
+  
+  // Add property to store modal positions
+  private modalPositions: { [key: string]: { left: string, top: string } } = {};
+
+  constructor(private http: HttpClient, private renderer: Renderer2) {
     // Set up search with debounce
     this.searchSubject.pipe(
       debounceTime(500),
@@ -131,6 +142,9 @@ export class AppComponent implements AfterViewInit, OnInit {
         this.searchResults = [];
       }
     });
+
+    // Add event listeners for modal dragging
+    this.setupModalDragListeners();
   }
 
   ngOnInit(): void {
@@ -186,10 +200,23 @@ export class AppComponent implements AfterViewInit, OnInit {
         this.coordinatesInput = [...currentPolygon.coordinates];
       }
     }
+
+    // Load saved modal positions
+    const savedModalPositions = localStorage.getItem('modalPositions');
+    if (savedModalPositions) {
+      try {
+        this.modalPositions = JSON.parse(savedModalPositions);
+      } catch (error) {
+        console.error('Error parsing saved modal positions:', error);
+      }
+    }
   }
 
   ngAfterViewInit(): void {
     this.initializeMap();
+    
+    // Apply saved modal positions after a short delay to ensure DOM is ready
+    setTimeout(() => this.applyModalPositions(), 100);
   }
   
   // Toggle UI controls
@@ -274,6 +301,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     
     if (this.dataSendingMode) {
       this.showToast('Data sending mode activated. Click on the map to send coordinates to API.', 'info');
+      this.apiError = false; // Reset error state when activating
     } else {
       this.showToast('Data sending mode deactivated.', 'info');
     }
@@ -370,9 +398,37 @@ export class AppComponent implements AfterViewInit, OnInit {
   }
   
   saveSettings(): void {
-    // Save settings to localStorage
-    localStorage.setItem('apiSettings', JSON.stringify(this.apiSettings));
-    this.showToast('Settings saved successfully', 'success');
+    // Add visual feedback by showing a loading state
+    const saveButton = document.querySelector('.save-button') as HTMLButtonElement;
+    if (saveButton) {
+      const originalContent = saveButton.innerHTML;
+      saveButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Saving...';
+      saveButton.disabled = true;
+      
+      // Simulate a short delay to show the loading state
+      setTimeout(() => {
+        // Save settings to localStorage
+        localStorage.setItem('apiSettings', JSON.stringify(this.apiSettings));
+        
+        // Show success state
+        saveButton.innerHTML = '<i class="fa fa-check"></i> Saved!';
+        saveButton.classList.add('saved');
+        
+        // Show toast notification
+        this.showToast('Settings saved successfully', 'success');
+        
+        // Reset button after a delay
+        setTimeout(() => {
+          saveButton.innerHTML = originalContent;
+          saveButton.disabled = false;
+          saveButton.classList.remove('saved');
+        }, 1500);
+      }, 600);
+    } else {
+      // Fallback if button element not found
+      localStorage.setItem('apiSettings', JSON.stringify(this.apiSettings));
+      this.showToast('Settings saved successfully', 'success');
+    }
   }
 
   startPolygonDrawing(): void {
@@ -508,6 +564,15 @@ export class AppComponent implements AfterViewInit, OnInit {
   // Search functionality
   onSearchInput(): void {
     this.searchSubject.next(this.searchQuery);
+  }
+  
+  clearSearch(): void {
+    this.searchQuery = '';
+    this.searchResults = [];
+  }
+  
+  clearCoordinates(): void {
+    this.coordinatesQuery = '';
   }
   
   performSearch(query: string): void {
@@ -995,6 +1060,7 @@ export class AppComponent implements AfterViewInit, OnInit {
             </div>
           `);          
           this.showToast('Coordinates sent successfully', 'success');
+          this.apiError = false;
           
           // Auto-close popup after success
           setTimeout(() => popup.close(), 500);
@@ -1008,6 +1074,7 @@ export class AppComponent implements AfterViewInit, OnInit {
             </div>
           `);          
           this.showToast('Failed to send coordinates: ' + (response?.errors || 'API error'), 'error');
+          this.apiError = true;
         }
       },
       error: (error) => {
@@ -1020,7 +1087,149 @@ export class AppComponent implements AfterViewInit, OnInit {
           </div>
         `);
         this.showToast('Failed to send coordinates: Network or server error', 'error');
+        this.apiError = true;
       }
     });
+  }
+
+  // Add a new method for saving settings from the modal
+  saveSettingsModal(): void {
+    // Add visual feedback by showing a loading state
+    const saveButton = document.querySelector('.save-settings-button') as HTMLButtonElement;
+    if (saveButton) {
+      const originalContent = saveButton.innerHTML;
+      saveButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Saving...';
+      saveButton.disabled = true;
+      
+      // Simulate a short delay to show the loading state
+      setTimeout(() => {
+        // Save settings to localStorage
+        localStorage.setItem('apiSettings', JSON.stringify(this.apiSettings));
+        
+        // Show success state
+        saveButton.innerHTML = '<i class="fa fa-check"></i> Saved!';
+        
+        // Show toast notification
+        this.showToast('Settings saved successfully', 'success');
+        
+        // Close the settings modal after a delay
+        setTimeout(() => {
+          this.toggleSettingsControl();
+        }, 1000);
+      }, 600);
+    } else {
+      // Fallback if button element not found
+      localStorage.setItem('apiSettings', JSON.stringify(this.apiSettings));
+      this.showToast('Settings saved successfully', 'success');
+      
+      // Close the settings modal
+      setTimeout(() => {
+        this.toggleSettingsControl();
+      }, 1000);
+    }
+  }
+
+  // Setup modal drag functionality
+  private setupModalDragListeners(): void {
+    // Global mouse/touch move event
+    const moveHandler = (e: MouseEvent | TouchEvent) => {
+      if (this.modalDragging && this.activeModal) {
+        e.preventDefault();
+        
+        // Get current pointer position
+        const clientX = e instanceof MouseEvent ? e.clientX : e.touches[0].clientX;
+        const clientY = e instanceof MouseEvent ? e.clientY : e.touches[0].clientY;
+        
+        // Calculate new position
+        const left = clientX - this.modalOffset.x;
+        const top = clientY - this.modalOffset.y;
+        
+        // Apply new position
+        this.renderer.setStyle(this.activeModal, 'left', `${left}px`);
+        this.renderer.setStyle(this.activeModal, 'top', `${top}px`);
+        
+        // Save position for this modal type
+        if (this.activeModal.classList.contains('modal-panel')) {
+          const modalType = this.getModalType(this.activeModal);
+          if (modalType) {
+            this.modalPositions[modalType] = { left: `${left}px`, top: `${top}px` };
+            this.saveModalPositions();
+          }
+        }
+      }
+    };
+    
+    // Global mouse/touch up event
+    const upHandler = () => {
+      this.modalDragging = false;
+      this.activeModal = null;
+    };
+    
+    // Add global event listeners
+    window.addEventListener('mousemove', moveHandler);
+    window.addEventListener('touchmove', moveHandler, { passive: false });
+    window.addEventListener('mouseup', upHandler);
+    window.addEventListener('touchend', upHandler);
+  }
+  
+  // Start dragging a modal
+  public startModalDrag(event: MouseEvent | TouchEvent, modalElement: HTMLElement): void {
+    // Only start drag if clicking on the header
+    const target = event.target as HTMLElement;
+    if (!target.closest('.modal-header')) {
+      return;
+    }
+    
+    event.preventDefault();
+    this.modalDragging = true;
+    this.activeModal = modalElement;
+    
+    // Get current pointer position
+    const clientX = event instanceof MouseEvent ? event.clientX : event.touches[0].clientX;
+    const clientY = event instanceof MouseEvent ? event.clientY : event.touches[0].clientY;
+    
+    // Calculate offset (distance from pointer to top-left corner of modal)
+    const rect = modalElement.getBoundingClientRect();
+    this.modalOffset.x = clientX - rect.left;
+    this.modalOffset.y = clientY - rect.top;
+  }
+  
+  // Get the modal type from its class list
+  private getModalType(element: HTMLElement): string | null {
+    const classList = element.classList;
+    const modalClasses = [
+      'layer-modal', 
+      'search-modal', 
+      'geojson-modal', 
+      'polygon-modal', 
+      'data-modal', 
+      'settings-modal', 
+      'favorites-modal'
+    ];
+    
+    for (const className of modalClasses) {
+      if (classList.contains(className)) {
+        return className;
+      }
+    }
+    
+    return null;
+  }
+  
+  // Save modal positions to localStorage
+  private saveModalPositions(): void {
+    localStorage.setItem('modalPositions', JSON.stringify(this.modalPositions));
+  }
+  
+  // Apply saved positions to modals
+  private applyModalPositions(): void {
+    for (const [modalType, position] of Object.entries(this.modalPositions)) {
+      const modalElements = document.getElementsByClassName(modalType);
+      if (modalElements.length > 0) {
+        const modalElement = modalElements[0] as HTMLElement;
+        this.renderer.setStyle(modalElement, 'left', position.left);
+        this.renderer.setStyle(modalElement, 'top', position.top);
+      }
+    }
   }
 }

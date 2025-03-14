@@ -26,194 +26,269 @@
 
   
   <!-- Layer Control Panel -->
-  <div *ngIf="showLayerControl" class="control-panel-content layer-panel">
-    <div class="panel-header">
-      <h3>Map Layers</h3>
-      <button class="close-button" (click)="toggleLayerControl()">
+  <div *ngIf="showLayerControl" class="modal-panel layer-modal" #layerModal (mousedown)="startModalDrag($event, layerModal)" (touchstart)="startModalDrag($event, layerModal)">
+    <div class="modal-header">
+      <h3><i class="fa fa-layer-group"></i> Map Layers</h3>
+      <button class="modal-close" (click)="toggleLayerControl()">
         <i class="fa fa-times"></i>
       </button>
     </div>
-    <div class="layer-options">
-      <div class="layer-option" 
-           *ngFor="let layer of ['roadmap', 'satellite', 'hybrid', 'terrain', 'osm']"
-           [class.active]="selectedLayer === layer"
-           (click)="changeMapLayer(layer)">
-        <i class="fa" 
-           [ngClass]="{
-             'fa-road': layer === 'roadmap',
-             'fa-satellite': layer === 'satellite',
-             'fa-layer-group': layer === 'hybrid',
-             'fa-mountain': layer === 'terrain',
-             'fa-map': layer === 'osm'
-           }"></i>
-        {{ layer | titlecase }}
+    <div class="modal-content">
+      <div class="layer-options">
+        <div class="layer-option" 
+             *ngFor="let layer of ['roadmap', 'satellite', 'hybrid', 'terrain', 'osm']"
+             [class.active]="selectedLayer === layer"
+             (click)="changeMapLayer(layer)">
+          <i class="fa" 
+             [ngClass]="{
+               'fa-road': layer === 'roadmap',
+               'fa-satellite': layer === 'satellite',
+               'fa-layer-group': layer === 'hybrid',
+               'fa-mountain': layer === 'terrain',
+               'fa-map': layer === 'osm'
+             }"></i>
+          {{ layer | titlecase }}
+        </div>
       </div>
     </div>
   </div>
   
   <!-- Search Control Panel -->
-  <div *ngIf="showSearchControl" class="control-panel-content search-panel">
-    <div class="panel-header">
-      <h3>Search</h3>
-      <button class="close-button" (click)="toggleSearchControl()">
+  <div *ngIf="showSearchControl" class="modal-panel search-modal" #searchModal (mousedown)="startModalDrag($event, searchModal)" (touchstart)="startModalDrag($event, searchModal)">
+    <div class="modal-header">
+      <h3><i class="fa fa-search"></i> Search</h3>
+      <button class="modal-close" (click)="toggleSearchControl()">
         <i class="fa fa-times"></i>
       </button>
     </div>
-    <div class="search-box">
-      <input type="text" 
-             [(ngModel)]="searchQuery" 
-             (input)="onSearchInput()" 
-             placeholder="Search location">
-      
-      <div *ngIf="isSearching" class="search-loading">
-        <i class="fa fa-spinner fa-spin"></i> Searching...
-      </div>
-      
-      <div *ngIf="searchResults.length > 0" class="search-results">
-        <div *ngFor="let result of searchResults" 
-             class="search-result-item"
-             (click)="goToLocation(result)">
-          {{ result.display_name }}
+    <div class="modal-content">
+      <!-- Location search -->
+      <div class="search-section">
+        <div class="setting-label">
+          <i class="fa fa-map-marker-alt"></i> Find location
+        </div>
+        <div class="search-input-wrapper">
+          <input type="text" 
+                 [(ngModel)]="searchQuery" 
+                 (input)="onSearchInput()" 
+                 class="setting-input"
+                 placeholder="Enter location name">
+          <div *ngIf="isSearching" class="search-indicator">
+            <i class="fa fa-spinner fa-spin"></i>
+          </div>
+          <button *ngIf="searchQuery && !isSearching" 
+                  (click)="clearSearch()" 
+                  class="clear-button" 
+                  title="Clear search">
+            <i class="fa fa-times-circle"></i>
+          </button>
+        </div>
+        
+        <div *ngIf="searchResults.length > 0" class="search-results">
+          <div *ngFor="let result of searchResults" 
+               class="search-result-item"
+               (click)="goToLocation(result)">
+            <i class="fa fa-map-pin result-icon"></i>
+            <span class="result-text">{{ result.display_name | slice:0:40 }}{{ result.display_name.length > 40 ? '...' : '' }}</span>
+          </div>
         </div>
       </div>
-    </div>
-    
-    <div class="coordinates-search-box">
-      <input type="text" 
-             [(ngModel)]="coordinatesQuery" 
-             placeholder="Lat, Lng (e.g. 51.505, -0.09)">
-      <button (click)="searchByCoordinates()" class="primary-button">
-        <i class="fa fa-search-location"></i> Go
-      </button>
+      
+      <!-- Coordinates search -->
+      <div class="search-section">
+        <div class="setting-label">
+          <i class="fa fa-compass"></i> Go to coordinates
+        </div>
+        <div class="coordinates-search-wrapper">
+          <div class="coordinates-input-wrapper">
+            <input type="text" 
+                   [(ngModel)]="coordinatesQuery" 
+                   class="setting-input"
+                   placeholder="Lat, Lng (e.g. 51.5, -0.09)">
+            <button *ngIf="coordinatesQuery" 
+                    (click)="clearCoordinates()" 
+                    class="clear-button" 
+                    title="Clear coordinates">
+              <i class="fa fa-times-circle"></i>
+            </button>
+          </div>
+          <button (click)="searchByCoordinates()" class="search-go-button">
+            <i class="fa fa-location-arrow"></i> Go
+          </button>
+        </div>
+      </div>
     </div>
   </div>
   
   <!-- GeoJSON Control Panel -->
-  <div *ngIf="showGeoJsonControl" class="control-panel-content geojson-panel">
-    <div class="panel-header">
-      <h3>GeoJSON</h3>
-      <button class="close-button" (click)="toggleGeoJsonControl()">
+  <div *ngIf="showGeoJsonControl" class="modal-panel geojson-modal" #geojsonModal (mousedown)="startModalDrag($event, geojsonModal)" (touchstart)="startModalDrag($event, geojsonModal)">
+    <div class="modal-header">
+      <h3><i class="fa fa-file-code"></i> GeoJSON</h3>
+      <button class="modal-close" (click)="toggleGeoJsonControl()">
         <i class="fa fa-times"></i>
       </button>
     </div>
-    <app-geojson-control [map]="map"></app-geojson-control>
+    <div class="modal-content">
+      <app-geojson-control [map]="map"></app-geojson-control>
+    </div>
   </div>
   
   <!-- Polygon Control Panel -->
-  <div *ngIf="showPolygonControl" class="control-panel-content polygon-panel">
-    <div class="panel-header">
-      <h3>Draw Polygon</h3>
-      <button class="close-button" (click)="togglePolygonControl()">
+  <div *ngIf="showPolygonControl" class="modal-panel polygon-modal" #polygonModal (mousedown)="startModalDrag($event, polygonModal)" (touchstart)="startModalDrag($event, polygonModal)">
+    <div class="modal-header">
+      <h3><i class="fa fa-draw-polygon"></i> Draw Polygon</h3>
+      <button class="modal-close" (click)="togglePolygonControl()">
         <i class="fa fa-times"></i>
       </button>
     </div>
     
-    <div *ngIf="!showPolygonNameInput">
-      <p class="instruction-text">Click on the map to add points</p>
+    <div class="modal-content">
+      <div *ngIf="!showPolygonNameInput">
+        <div class="polygon-instructions">
+          <i class="fa fa-info-circle"></i>
+          <span>Click on the map to add points. You need at least 3 points to create a polygon.</span>
+        </div>
+        
+        <div class="polygon-points-counter">
+          <span class="counter-label">Points:</span>
+          <span class="counter-value">{{ tempPolygonPoints.length }}</span>
+          <span class="counter-min">(min 3)</span>
+        </div>
+        
+        <div class="polygon-actions">
+          <button (click)="finishPolygonDrawing()" 
+                  [disabled]="tempPolygonPoints.length < 3"
+                  class="polygon-action-button finish-button">
+            <i class="fa fa-check"></i> Finish
+          </button>
+          <button (click)="cancelPolygonDrawing()" class="polygon-action-button cancel-button">
+            <i class="fa fa-times"></i> Cancel
+          </button>
+        </div>
+      </div>
       
-      <div class="polygon-actions">
-        <button (click)="finishPolygonDrawing()" 
-                [disabled]="tempPolygonPoints.length < 3"
-                class="primary-button">
-          <i class="fa fa-check"></i> Finish
-        </button>
-        <button (click)="cancelPolygonDrawing()" class="secondary-button">
-          <i class="fa fa-times"></i> Cancel
+      <div *ngIf="showPolygonNameInput" class="polygon-name-form">
+        <div class="setting-label">
+          <i class="fa fa-tag"></i> Polygon Name
+        </div>
+        <div class="polygon-name-input-wrapper">
+          <input type="text" 
+                 [(ngModel)]="newPolygonName" 
+                 placeholder="Enter polygon name"
+                 class="setting-input"
+                 autofocus>
+        </div>
+        <button (click)="savePolygonAsFavorite()" 
+                [disabled]="!newPolygonName.trim()"
+                class="save-polygon-button">
+          <i class="fa fa-save"></i> Save Polygon
         </button>
       </div>
-    </div>
-    
-    <div *ngIf="showPolygonNameInput" class="name-input-container">
-      <input type="text" 
-             [(ngModel)]="newPolygonName" 
-             placeholder="Polygon name"
-             autofocus>
-      <button (click)="savePolygonAsFavorite()" 
-              [disabled]="!newPolygonName.trim()"
-              class="success-button">
-        <i class="fa fa-save"></i> Save
-      </button>
     </div>
   </div>
   
   <!-- Data Sending Control Panel -->
-  <div *ngIf="showDataSendingControl" class="control-panel-content data-panel">
-    <div class="panel-header">
-      <h3>Data Sending</h3>
-      <button class="close-button" (click)="toggleDataSendingControl()">
+  <div *ngIf="showDataSendingControl" class="modal-panel data-modal" #dataModal (mousedown)="startModalDrag($event, dataModal)" (touchstart)="startModalDrag($event, dataModal)">
+    <div class="modal-header">
+      <h3><i class="fa fa-paper-plane"></i> Send Data</h3>
+      <button class="modal-close" (click)="toggleDataSendingControl()">
         <i class="fa fa-times"></i>
       </button>
     </div>
-    <p class="instruction-text">Click on the map to send coordinates to API</p>
-    <div class="api-status">
-      <div class="status-item">
-        <span class="status-label">API:</span>
-        <span class="status-active">Active</span>
+    <div class="modal-content">
+      <div class="setting-label">
+        <i class="fa fa-server"></i> API Status
       </div>
-      <div class="status-item">
-        <span class="status-label">Endpoint:</span>
-        <span class="status-value">{{ apiSettings.apiUrl | slice:0:20 }}...</span>
+      <div class="api-status-display">
+        <div class="status-indicator" [ngClass]="{'active': true, 'error': apiError}">
+          <i class="fa fa-circle"></i>
+          <span>{{ apiError ? 'Error' : 'Connected' }}</span>
+        </div>
+        <div class="api-url">
+          {{ apiSettings.apiUrl | slice:0:30 }}{{ apiSettings.apiUrl.length > 30 ? '...' : '' }}
+        </div>
+      </div>
+      <div class="data-instructions">
+        <i class="fa fa-info-circle"></i>
+        <span>Click anywhere on the map to send coordinates to the API</span>
       </div>
     </div>
   </div>
   
   <!-- Settings Control Panel -->
-  <div *ngIf="showSettingsControl" class="control-panel-content settings-panel">
-    <div class="panel-header">
-      <h3>API Settings</h3>
-      <button class="close-button" (click)="toggleSettingsControl()">
+  <div *ngIf="showSettingsControl" class="modal-panel settings-modal" #settingsModal (mousedown)="startModalDrag($event, settingsModal)" (touchstart)="startModalDrag($event, settingsModal)">
+    <div class="modal-header">
+      <h3><i class="fa fa-cog"></i> API Settings</h3>
+      <button class="modal-close" (click)="toggleSettingsControl()">
         <i class="fa fa-times"></i>
       </button>
     </div>
-    <div class="settings-form">
-      <div class="form-group">
-        <label for="apiUrl">API URL</label>
-        <input type="text" id="apiUrl" [(ngModel)]="apiSettings.apiUrl" placeholder="API URL">
+    <div class="modal-content">
+      <div class="settings-form">
+        <div class="form-group">
+          <div class="setting-label">
+            <i class="fa fa-link"></i> API URL
+          </div>
+          <input type="text" [(ngModel)]="apiSettings.apiUrl" 
+                 class="setting-input" placeholder="Enter API endpoint">
+        </div>
+        
+        <div class="form-group">
+          <div class="setting-label">
+            <i class="fa fa-key"></i> Bearer ID
+          </div>
+          <input type="text" [(ngModel)]="apiSettings.bearerId" 
+                 class="setting-input" placeholder="Enter bearer ID">
+        </div>
+        
+        <div class="form-group">
+          <div class="setting-label">
+            <i class="fa fa-tag"></i> Tracker ID
+          </div>
+          <input type="text" [(ngModel)]="apiSettings.trackerId" 
+                 class="setting-input" placeholder="Enter tracker ID">
+        </div>
       </div>
-      <div class="form-group">
-        <label for="bearerId">Bearer ID</label>
-        <input type="text" id="bearerId" [(ngModel)]="apiSettings.bearerId" placeholder="Bearer ID">
-      </div>
-      <div class="form-group">
-        <label for="trackerId">Tracker ID</label>
-        <input type="text" id="trackerId" [(ngModel)]="apiSettings.trackerId" placeholder="Tracker ID">
-      </div>
-      <button (click)="saveSettings()" class="success-button">
-        <i class="fa fa-save"></i> Save
+    </div>
+    <div class="modal-footer">
+      <button (click)="saveSettingsModal()" class="save-settings-button">
+        <i class="fa fa-save"></i> Save Settings
       </button>
     </div>
   </div>
   
   <!-- Favorites Control Panel -->
-  <div *ngIf="showFavoritesControl" class="control-panel-content favorites-panel">
-    <div class="panel-header">
-      <h3>Favorites</h3>
-      <button class="close-button" (click)="toggleFavoritesControl()">
+  <div *ngIf="showFavoritesControl" class="modal-panel favorites-modal" #favoritesModal (mousedown)="startModalDrag($event, favoritesModal)" (touchstart)="startModalDrag($event, favoritesModal)">
+    <div class="modal-header">
+      <h3><i class="fa fa-star"></i> Favorites</h3>
+      <button class="modal-close" (click)="toggleFavoritesControl()">
         <i class="fa fa-times"></i>
       </button>
     </div>
-    <div *ngIf="favoritePolygons.length === 0" class="no-favorites">
-      <i class="fa fa-star"></i>
-      <p>No favorites yet</p>
-    </div>
-    <div *ngIf="favoritePolygons.length > 0" class="favorites-list">
-      <div *ngFor="let favorite of favoritePolygons" class="favorite-item" [class.active]="currentPolygonId === favorite.id">
-        <div class="favorite-info">
-          <h4>
-            {{ favorite.name }}
-            <span *ngIf="currentPolygonId === favorite.id" class="current-badge">
-              <i class="fa fa-check"></i>
-            </span>
-          </h4>
-          <small>{{ favorite.createdAt | date:'short' }}</small>
-        </div>
-        <div class="favorite-actions">
-          <button class="icon-button" (click)="loadFavoritePolygon(favorite)" title="Load">
-            <i class="fa fa-map-marker-alt"></i>
-          </button>
-          <button class="icon-button delete" (click)="deleteFavoritePolygon(favorite)" title="Delete">
-            <i class="fa fa-trash"></i>
-          </button>
+    <div class="modal-content">
+      <div *ngIf="favoritePolygons.length === 0" class="no-favorites">
+        <i class="fa fa-star-o"></i>
+        <p>No favorites yet</p>
+      </div>
+      <div *ngIf="favoritePolygons.length > 0" class="favorites-list">
+        <div *ngFor="let favorite of favoritePolygons" class="favorite-item" [class.active]="currentPolygonId === favorite.id">
+          <div class="favorite-info">
+            <h4>
+              {{ favorite.name }}
+              <span *ngIf="currentPolygonId === favorite.id" class="current-badge">
+                <i class="fa fa-check"></i>
+              </span>
+            </h4>
+            <small>{{ favorite.createdAt | date:'short' }}</small>
+          </div>
+          <div class="favorite-actions">
+            <button class="favorite-action-button" (click)="loadFavoritePolygon(favorite)" title="Load">
+              <i class="fa fa-map-marker-alt"></i>
+            </button>
+            <button class="favorite-action-button delete" (click)="deleteFavoritePolygon(favorite)" title="Delete">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
         </div>
       </div>
     </div>

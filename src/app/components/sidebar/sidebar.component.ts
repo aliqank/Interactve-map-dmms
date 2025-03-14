@@ -250,8 +250,12 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
       try {
         const settings = JSON.parse(savedSettings);
         this.sidebarSettings = { ...this.sidebarSettings, ...settings };
-        this.setTranslate(this.sidebarSettings.position.x, this.sidebarSettings.position.y);
-        this.applySettings();
+        
+        // Apply settings after a short delay to ensure DOM is ready
+        setTimeout(() => {
+          this.setTranslate(this.sidebarSettings.position.x, this.sidebarSettings.position.y);
+          this.applySettings();
+        }, 100);
       } catch (e) {
         console.error('Error parsing saved sidebar settings', e);
         localStorage.removeItem('sidebarSettings');
@@ -351,6 +355,7 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
   onDrag(e: MouseEvent | TouchEvent): void {
     if (!this.isDragging) return;
     
+    // Get current pointer position
     let clientX: number;
     let clientY: number;
     
@@ -363,40 +368,24 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
       clientY = e.touches[0].clientY;
     }
     
+    // Calculate new position
     const newPosition = {
       x: clientX - this.dragOffset.x,
       y: clientY - this.dragOffset.y
     };
     
-    // Get sidebar dimensions
-    const sidebarWidth = this.sidebarElement?.nativeElement.offsetWidth || 42;
-    const sidebarHeight = this.sidebarElement?.nativeElement.offsetHeight || 300;
+    // Apply boundary constraints to keep the sidebar on screen
+    const safetyMargin = 50; // Minimum distance from edge
     
-    // Determine effective dimensions based on rotation
-    let effectiveWidth = sidebarWidth;
-    let effectiveHeight = sidebarHeight;
-    
-    // When rotated 90 or 270 degrees, swap width and height for boundary calculations
-    const isHorizontal = this.sidebarSettings.rotation === 90 || this.sidebarSettings.rotation === 270;
-    if (isHorizontal) {
-      effectiveWidth = sidebarHeight;
-      effectiveHeight = sidebarWidth;
-    }
-    
-    // Minimal safety margin to ensure the sidebar is always accessible
-    // Just enough to prevent it from being completely off-screen
-    const safetyMargin = 5;
-    
-    // Only apply minimal constraints to prevent the sidebar from being completely inaccessible
-    // Allow at least a small portion of the sidebar to remain visible
-    if (newPosition.x < -effectiveWidth + safetyMargin) {
-      newPosition.x = -effectiveWidth + safetyMargin;
+    // Constrain to viewport boundaries
+    if (newPosition.x < 0) {
+      newPosition.x = 0;
     } else if (newPosition.x > window.innerWidth - safetyMargin) {
       newPosition.x = window.innerWidth - safetyMargin;
     }
     
-    if (newPosition.y < -effectiveHeight + safetyMargin) {
-      newPosition.y = -effectiveHeight + safetyMargin;
+    if (newPosition.y < 0) {
+      newPosition.y = 0;
     } else if (newPosition.y > window.innerHeight - safetyMargin) {
       newPosition.y = window.innerHeight - safetyMargin;
     }
@@ -421,12 +410,17 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
         this.eventCatcher = null;
       }
       
+      // Save the current position to localStorage
       this.saveSettings();
     }
   }
   
   setTranslate(xPos: number, yPos: number): void {
     const sidebar = this.sidebarElement.nativeElement;
+    
+    // Update the position in the settings object
+    this.sidebarSettings.position.x = xPos;
+    this.sidebarSettings.position.y = yPos;
     
     // For horizontal orientations (90° or 270°), adjust the transform origin
     if (this.sidebarSettings.rotation === 90) {
