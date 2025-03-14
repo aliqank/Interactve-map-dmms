@@ -10,7 +10,7 @@
      (mousedown)="dragStart($event)" 
      (touchstart)="dragStart($event)">
   
-  <div class="drag-handle" title="Drag to move sidebar">
+  <div class="drag-handle" title="Drag">
     <i class="fa" [ngClass]="SidebarIcon.DRAG"></i>
   </div>
   
@@ -20,7 +20,8 @@
            *ngFor="let item of controlItems | filterByGroup:group"
            [class.active]="item.isActive"
            (click)="item.action()"
-           [title]="item.title">
+           [title]="item.title"
+           [attr.data-shortcut]="getShortcutForTool(item.id)">
         <div class="map-control-icon">
           <i class="fa" [ngClass]="item.icon"></i>
         </div>
@@ -33,7 +34,8 @@
          *ngFor="let item of controlItems | filterByGroup:ControlGroup.BOTTOM_CONTROLS"
          [class.active]="item.isActive"
          (click)="item.action()"
-         [title]="item.title">
+         [title]="item.title"
+         [attr.data-shortcut]="getShortcutForTool(item.id)">
       <div class="map-control-icon">
         <i class="fa" [ngClass]="item.icon"></i>
       </div>
@@ -44,7 +46,7 @@
 <!-- Customization Panel -->
 <div *ngIf="showCustomizationPanel" class="customization-panel">
   <div class="panel-header">
-    <h3>Customize Sidebar</h3>
+    <h3>Customize</h3>
     <button class="close-button" (click)="toggleCustomizationPanel()">
       <i class="fa" [ngClass]="SidebarIcon.CLOSE"></i>
     </button>
@@ -54,14 +56,8 @@
     <div class="option-group">
       <h4>Theme</h4>
       <div class="theme-options">
-        <button class="theme-option" [class.active]="sidebarSettings.theme === 'light'" (click)="setTheme('light')">
-          <div class="theme-preview light"></div>
-          <span>Light</span>
-        </button>
-        <button class="theme-option" [class.active]="sidebarSettings.theme === 'dark'" (click)="setTheme('dark')">
-          <div class="theme-preview dark"></div>
-          <span>Dark</span>
-        </button>
+        <button class="theme-option" [class.active]="sidebarSettings.theme === 'light'" (click)="setTheme('light')">Light</button>
+        <button class="theme-option" [class.active]="sidebarSettings.theme === 'dark'" (click)="setTheme('dark')">Dark</button>
       </div>
     </div>
     
@@ -72,8 +68,7 @@
                 class="rotation-option" 
                 [class.active]="sidebarSettings.rotation === angle"
                 (click)="setRotation(angle)">
-          <i class="fa fa-sync-alt" [style.transform]="'rotate(' + angle + 'deg)'"></i>
-          <span>{{ angle }}°</span>
+          {{ angle }}°
         </button>
       </div>
     </div>
@@ -85,7 +80,7 @@
     
     <button class="reset-button" (click)="resetPosition()">
       <i class="fa" [ngClass]="SidebarIcon.RESET"></i>
-      Reset Position
+      Reset
     </button>
   </div>
 </div>

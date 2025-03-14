@@ -64,7 +64,7 @@ export interface ControlItem {
 })
 export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
   @Input() map!: L.Map;
-  @Output() toolSelected = new EventEmitter<string>();
+  @Output() toolSelected = new EventEmitter<string | null>();
   @ViewChild('sidebarElement') sidebarElement!: ElementRef;
   
   // Enums for template access
@@ -76,17 +76,19 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
   // Draggable sidebar properties
   isDragging = false;
   dragOffset = { x: 0, y: 0 };
+  private eventCatcher: HTMLElement | null = null;
   
   // Bound event handlers
   private boundOnDrag: (event: MouseEvent | TouchEvent) => void;
   private boundStopDrag: () => void;
+  private boundKeyDown: (event: KeyboardEvent) => void;
   
   // Customization settings
   showCustomizationPanel = false;
   
   // Default sidebar settings
   sidebarSettings: SidebarSettings = {
-    position: { x: 0, y: 0 },
+    position: { x: 20, y: 20 },
     opacity: 1,
     theme: 'light',
     expanded: false,
@@ -223,6 +225,7 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
     // Bind methods to this instance
     this.boundOnDrag = this.onDrag.bind(this);
     this.boundStopDrag = this.stopDrag.bind(this);
+    this.boundKeyDown = this.handleKeyDown.bind(this);
   }
   
   ngOnInit(): void {
@@ -231,6 +234,13 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
     window.addEventListener('touchmove', this.boundOnDrag);
     window.addEventListener('mouseup', this.boundStopDrag);
     window.addEventListener('touchend', this.boundStopDrag);
+    
+    // Add keyboard event listener for ESC key
+    window.addEventListener('keydown', this.boundKeyDown);
+    
+    // Clear localStorage to apply new default settings
+    // This line can be removed after users have updated to the new version
+    localStorage.removeItem('sidebarSettings');
   }
   
   ngAfterViewInit(): void {
@@ -255,6 +265,13 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
     window.removeEventListener('touchmove', this.boundOnDrag);
     window.removeEventListener('mouseup', this.boundStopDrag);
     window.removeEventListener('touchend', this.boundStopDrag);
+    window.removeEventListener('keydown', this.boundKeyDown);
+    
+    // Remove the global event catcher if it exists
+    if (this.eventCatcher && this.eventCatcher.parentNode) {
+      this.eventCatcher.parentNode.removeChild(this.eventCatcher);
+      this.eventCatcher = null;
+    }
   }
   
   // Apply all current settings to the sidebar element
@@ -306,6 +323,13 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
       
       this.isDragging = true;
       
+      // Add a class to indicate dragging state
+      this.sidebarElement.nativeElement.classList.add('dragging');
+      
+      // Calculate drag offset based on rotation
+      const isHorizontal = this.sidebarSettings.rotation === 90 || this.sidebarSettings.rotation === 270;
+      
+      // Calculate the offset from the cursor to the top-left corner of the sidebar
       this.dragOffset = {
         x: clientX - this.sidebarSettings.position.x,
         y: clientY - this.sidebarSettings.position.y
@@ -313,6 +337,14 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
       
       // Prevent default to avoid text selection during drag
       e.preventDefault();
+      
+      // Add a global event catcher to ensure drag continues even if cursor moves fast
+      const eventCatcher = document.createElement('div');
+      eventCatcher.className = 'global-event-catcher';
+      document.body.appendChild(eventCatcher);
+      
+      // Store reference to remove it later
+      this.eventCatcher = eventCatcher;
     }
   }
   
@@ -336,22 +368,37 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
       y: clientY - this.dragOffset.y
     };
     
-    // Keep the sidebar within viewport bounds
-    const sidebarWidth = this.sidebarElement?.nativeElement.offsetWidth || 48;
+    // Get sidebar dimensions
+    const sidebarWidth = this.sidebarElement?.nativeElement.offsetWidth || 42;
     const sidebarHeight = this.sidebarElement?.nativeElement.offsetHeight || 300;
     
-    // Constrain x position
-    if (newPosition.x < 0) {
-      newPosition.x = 0;
-    } else if (newPosition.x + sidebarWidth > window.innerWidth) {
-      newPosition.x = window.innerWidth - sidebarWidth;
+    // Determine effective dimensions based on rotation
+    let effectiveWidth = sidebarWidth;
+    let effectiveHeight = sidebarHeight;
+    
+    // When rotated 90 or 270 degrees, swap width and height for boundary calculations
+    const isHorizontal = this.sidebarSettings.rotation === 90 || this.sidebarSettings.rotation === 270;
+    if (isHorizontal) {
+      effectiveWidth = sidebarHeight;
+      effectiveHeight = sidebarWidth;
     }
     
-    // Constrain y position
-    if (newPosition.y < 0) {
-      newPosition.y = 0;
-    } else if (newPosition.y + sidebarHeight > window.innerHeight) {
-      newPosition.y = window.innerHeight - sidebarHeight;
+    // Minimal safety margin to ensure the sidebar is always accessible
+    // Just enough to prevent it from being completely off-screen
+    const safetyMargin = 5;
+    
+    // Only apply minimal constraints to prevent the sidebar from being completely inaccessible
+    // Allow at least a small portion of the sidebar to remain visible
+    if (newPosition.x < -effectiveWidth + safetyMargin) {
+      newPosition.x = -effectiveWidth + safetyMargin;
+    } else if (newPosition.x > window.innerWidth - safetyMargin) {
+      newPosition.x = window.innerWidth - safetyMargin;
+    }
+    
+    if (newPosition.y < -effectiveHeight + safetyMargin) {
+      newPosition.y = -effectiveHeight + safetyMargin;
+    } else if (newPosition.y > window.innerHeight - safetyMargin) {
+      newPosition.y = window.innerHeight - safetyMargin;
     }
     
     // Update the sidebar position
@@ -365,20 +412,100 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
   stopDrag(): void {
     if (this.isDragging) {
       this.isDragging = false;
+      // Remove dragging class
+      this.sidebarElement.nativeElement.classList.remove('dragging');
+      
+      // Remove the global event catcher if it exists
+      if (this.eventCatcher && this.eventCatcher.parentNode) {
+        this.eventCatcher.parentNode.removeChild(this.eventCatcher);
+        this.eventCatcher = null;
+      }
+      
       this.saveSettings();
     }
   }
   
   setTranslate(xPos: number, yPos: number): void {
     const sidebar = this.sidebarElement.nativeElement;
+    
+    // For horizontal orientations (90° or 270°), adjust the transform origin
+    if (this.sidebarSettings.rotation === 90) {
+      sidebar.style.transformOrigin = 'top left';
+    } else if (this.sidebarSettings.rotation === 270) {
+      sidebar.style.transformOrigin = 'top left';
+    } else {
+      sidebar.style.transformOrigin = 'top left';
+    }
+    
     sidebar.style.transform = `translate3d(${xPos}px, ${yPos}px, 0) rotate(${this.sidebarSettings.rotation}deg)`;
   }
   
   // Set rotation directly
   setRotation(degrees: number): void {
     const sidebar = this.sidebarElement.nativeElement;
+    
+    // Store the previous rotation to detect orientation changes
+    const previousRotation = this.sidebarSettings.rotation;
+    const wasHorizontal = previousRotation === 90 || previousRotation === 270;
+    const willBeHorizontal = degrees === 90 || degrees === 270;
+    
+    // Update rotation value
     this.sidebarSettings.rotation = degrees;
-    this.setTranslate(this.sidebarSettings.position.x, this.sidebarSettings.position.y); // This will apply rotation too
+    
+    // Apply rotation classes for icon counter-rotation
+    sidebar.classList.remove('rotate-0', 'rotate-90', 'rotate-180', 'rotate-270');
+    sidebar.classList.add(`rotate-${degrees}`);
+    
+    // If changing between horizontal and vertical orientations, adjust position
+    // only if it would make the sidebar completely inaccessible
+    if (wasHorizontal !== willBeHorizontal) {
+      // Get sidebar dimensions
+      const sidebarWidth = sidebar.offsetWidth || 42;
+      const sidebarHeight = sidebar.offsetHeight || 300;
+      
+      // Current position
+      let { x, y } = this.sidebarSettings.position;
+      
+      // Minimal safety margin
+      const safetyMargin = 5;
+      
+      // Only adjust position if the sidebar would be completely off-screen
+      if (willBeHorizontal) {
+        // Vertical to horizontal
+        if (x < -sidebarHeight + safetyMargin) {
+          x = -sidebarHeight + safetyMargin;
+        } else if (x > window.innerWidth - safetyMargin) {
+          x = window.innerWidth - safetyMargin;
+        }
+        
+        if (y < -sidebarWidth + safetyMargin) {
+          y = -sidebarWidth + safetyMargin;
+        } else if (y > window.innerHeight - safetyMargin) {
+          y = window.innerHeight - safetyMargin;
+        }
+      } else {
+        // Horizontal to vertical
+        if (x < -sidebarWidth + safetyMargin) {
+          x = -sidebarWidth + safetyMargin;
+        } else if (x > window.innerWidth - safetyMargin) {
+          x = window.innerWidth - safetyMargin;
+        }
+        
+        if (y < -sidebarHeight + safetyMargin) {
+          y = -sidebarHeight + safetyMargin;
+        } else if (y > window.innerHeight - safetyMargin) {
+          y = window.innerHeight - safetyMargin;
+        }
+      }
+      
+      // Update position if needed
+      if (x !== this.sidebarSettings.position.x || y !== this.sidebarSettings.position.y) {
+        this.sidebarSettings.position = { x, y };
+      }
+    }
+    
+    // Apply the transform with rotation
+    this.setTranslate(this.sidebarSettings.position.x, this.sidebarSettings.position.y);
   }
   
   // Rotate by a specific angle increment
@@ -415,7 +542,7 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
   
   // Reset position to default
   resetPosition(): void {
-    this.sidebarSettings.position = { x: 0, y: 0 };
+    this.sidebarSettings.position = { x: 20, y: 20 };
     this.sidebarSettings.opacity = 1;
     this.sidebarSettings.theme = 'light';
     this.sidebarSettings.expanded = false;
@@ -436,61 +563,59 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
   }
   
   selectTool(toolId: string): void {
-    this.activeToolId = this.activeToolId === toolId ? null : toolId;
-    this.toolSelected.emit(toolId);
+    // If the tool is already active, deactivate it
+    if (this.activeToolId === toolId) {
+      this.unselectActiveTool();
+    } else {
+      // Deactivate the previous tool if any
+      if (this.activeToolId) {
+        const previousToolItem = this.controlItems.find(item => item.id === this.activeToolId);
+        if (previousToolItem) {
+          previousToolItem.isActive = false;
+        }
+      }
+      
+      // Activate the new tool
+      this.activeToolId = toolId;
+      
+      // Find the tool item and update its active state
+      const toolItem = this.controlItems.find(item => item.id === toolId);
+      if (toolItem) {
+        toolItem.isActive = true;
+      }
+      
+      this.toolSelected.emit(toolId);
+    }
   }
   
   toggleMapControl(controlType: string): void {
     // Get the control property name
-    const controlProp = `show${controlType.charAt(0).toUpperCase() + controlType.slice(1)}Control`;
+    const controlProperty = `show${controlType.charAt(0).toUpperCase() + controlType.slice(1)}Control`;
     
-    // Check if we're toggling the currently active control
-    const isCurrentlyActive = this.mapControls[controlProp as keyof typeof this.mapControls];
-    
-    // Reset all controls first
-    Object.keys(this.mapControls).forEach(key => {
-      this.mapControls[key as keyof typeof this.mapControls] = false;
-    });
-    
-    // Reset all control items active state
-    this.controlItems.forEach(item => {
-      item.isActive = false;
-    });
-    
-    // If the control was already active, leave all controls off (deselection)
-    // Otherwise, activate the selected control
-    if (!isCurrentlyActive) {
-      switch(controlType) {
-        case 'layer':
-          this.mapControls.showLayerControl = true;
-          break;
-        case 'search':
-          this.mapControls.showSearchControl = true;
-          break;
-        case 'measure':
-          this.mapControls.showMeasureControl = true;
-          break;
-        case 'geojson':
-          this.mapControls.showGeoJsonControl = true;
-          break;
-        case 'polygon':
-          this.mapControls.showPolygonControl = true;
-          break;
-        case 'dataSending':
-          this.mapControls.showDataSendingControl = true;
-          break;
-        case 'settings':
-          this.mapControls.showSettingsControl = true;
-          break;
-        case 'favorites':
-          this.mapControls.showFavoritesControl = true;
-          break;
+    // Toggle the control state
+    if (controlProperty in this.mapControls) {
+      // @ts-ignore: Dynamic property access
+      const currentState = this.mapControls[controlProperty];
+      
+      // If we're activating this control, deactivate all others first
+      if (!currentState) {
+        Object.keys(this.mapControls).forEach(key => {
+          if (key !== controlProperty) {
+            // @ts-ignore: Dynamic property access
+            this.mapControls[key] = false;
+          }
+        });
       }
       
-      // Set the active state for the selected control item
-      const selectedItem = this.controlItems.find(item => item.id === controlType);
-      if (selectedItem) {
-        selectedItem.isActive = true;
+      // Toggle the state of the requested control
+      // @ts-ignore: Dynamic property access
+      this.mapControls[controlProperty] = !currentState;
+      
+      // Update the active state of the control item
+      const controlItem = this.controlItems.find(item => item.id === controlType);
+      if (controlItem) {
+        // @ts-ignore: Dynamic property access
+        controlItem.isActive = this.mapControls[controlProperty];
       }
     }
     
@@ -525,5 +650,115 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
   
   findMyLocation(): void {
     this.findLocationRequested.emit();
+  }
+  
+  // Handle keyboard events
+  handleKeyDown(event: KeyboardEvent): void {
+    // Skip if user is typing in an input field
+    if (event.target instanceof HTMLInputElement || 
+        event.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+    
+    // Handle ESC key to unselect active tool
+    if (event.key === 'Escape') {
+      if (this.activeToolId) {
+        this.unselectActiveTool();
+        event.preventDefault();
+      } else if (this.showCustomizationPanel) {
+        this.toggleCustomizationPanel();
+        event.preventDefault();
+      } else {
+        // Check if any map control is active and close it
+        const activeControl = Object.entries(this.mapControls).find(([_, isActive]) => isActive);
+        if (activeControl) {
+          this.toggleMapControl(this.getControlTypeFromProperty(activeControl[0]));
+          event.preventDefault();
+        }
+      }
+      return;
+    }
+    
+    // Handle keyboard shortcuts for tools
+    const key = event.key.toLowerCase();
+    
+    // Check for Ctrl+L for location
+    if (event.ctrlKey && key === 'l') {
+      this.findMyLocation();
+      event.preventDefault();
+      return;
+    }
+    
+    // Only process single key shortcuts if no modifier keys are pressed
+    if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) {
+      return;
+    }
+    
+    // Map keys to tool IDs
+    const keyToToolMap: { [key: string]: string } = {
+      'l': 'layer',
+      's': 'search',
+      'm': 'measure',
+      'g': 'geojson',
+      'p': 'polygon',
+      'd': 'dataSending',
+      ',': 'settings',
+      'f': 'favorites',
+      'c': 'customize',
+      'r': 'reset'
+    };
+    
+    const toolId = keyToToolMap[key];
+    if (toolId) {
+      // Find the corresponding tool item
+      const toolItem = this.controlItems.find(item => item.id === toolId);
+      if (toolItem) {
+        toolItem.action();
+        event.preventDefault();
+      }
+    }
+  }
+  
+  // Helper method to get control type from property name
+  private getControlTypeFromProperty(property: string): string {
+    // Convert from showXxxControl to xxx
+    return property.replace('show', '').replace('Control', '').toLowerCase();
+  }
+  
+  // Unselect the active tool
+  unselectActiveTool(): void {
+    if (this.activeToolId) {
+      const previousToolId = this.activeToolId;
+      this.activeToolId = null;
+      
+      // Find the tool item and update its active state
+      const toolItem = this.controlItems.find(item => item.id === previousToolId);
+      if (toolItem) {
+        toolItem.isActive = false;
+      }
+      
+      // Emit null to indicate no tool is selected
+      this.toolSelected.emit(null);
+    }
+  }
+  
+  // Get keyboard shortcut for a tool
+  getShortcutForTool(toolId: string): string | null {
+    // Define keyboard shortcuts for tools
+    const shortcuts: { [key: string]: string } = {
+      'layer': 'L',
+      'search': 'S',
+      'measure': 'M',
+      'geojson': 'G',
+      'polygon': 'P',
+      'dataSending': 'D',
+      'settings': ',',
+      'favorites': 'F',
+      'customize': 'C',
+      'reset': 'R',
+      'location': 'Ctrl+L'
+    };
+    
+    return shortcuts[toolId] || null;
   }
 }

@@ -280,10 +280,14 @@ export class AppComponent implements AfterViewInit, OnInit {
   }
   
   toggleSettingsControl(): void {
-    this.settingsControlActive = !this.settingsControlActive;
-    if (this.settingsControlActive) {
-      this.resetOtherControls('settings');
-    }
+    this.showSettingsControl = !this.showSettingsControl;
+    this.showLayerControl = false;
+    this.showSearchControl = false;
+    this.showMeasureControl = false;
+    this.showGeoJsonControl = false;
+    this.showPolygonControl = false;
+    this.showDataSendingControl = false;
+    this.showFavoritesControl = false;
   }
   
   toggleFavoritesControl(): void {
@@ -308,7 +312,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     if (activeControl !== 'favorites') this.favoritesControlActive = false;
   }
   
-  handleToolSelection(toolId: string): void {
+  handleToolSelection(toolId: string | null): void {
     console.log('Tool selected:', toolId);
     
     // Reset all active modes
@@ -324,6 +328,11 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.showPolygonControl = false;
     this.showDataSendingControl = false;
     this.showSettingsControl = false;
+    
+    // If toolId is null, it means no tool is selected
+    if (toolId === null) {
+      return;
+    }
     
     // Handle specific tool actions
     switch(toolId) {

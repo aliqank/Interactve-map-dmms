@@ -1,36 +1,52 @@
 /* Sidebar container */
 .sidebar {
     position: fixed;
-    top: 100px; /* Default starting position */
-    left: 20px; /* Default starting position */
-    transform: translate3d(0, 0, 0); /* Will be updated by JS */
-    
+    transform: translate3d(20px, 20px, 0);
     height: auto;
     max-height: 80vh;
-    width: 48px;
+    width: 42px;
     background-color: white;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     z-index: 1000;
     overflow: hidden;
-    border-radius: 8px;
-    cursor: move; /* Indicates the sidebar is draggable */
-    user-select: none; /* Prevents text selection during drag */
-    touch-action: none; /* Prevents default touch actions */
-    transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
-    will-change: transform; /* Optimizes for animations */
-    backface-visibility: hidden; /* Reduces flickering */
-    -webkit-font-smoothing: subpixel-antialiased; /* Improves text rendering during transforms */
-    transform-origin: center; /* Sets rotation origin to center */
+    border-radius: 10px;
+    cursor: move;
+    user-select: none;
+    touch-action: none;
+    transition: all 0.3s ease;
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-font-smoothing: subpixel-antialiased;
+    transform-origin: top left;
+}
+
+/* Rotation-specific styles */
+.sidebar.rotate-0 {
+    transform-origin: top left;
+}
+
+.sidebar.rotate-90 {
+    transform-origin: top left;
+}
+
+.sidebar.rotate-180 {
+    transform-origin: top left;
+}
+
+.sidebar.rotate-270 {
+    transform-origin: top left;
 }
 
 /* Dragging state */
 .sidebar.dragging {
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
     opacity: 0.9;
-    transition: none; /* Disable transitions during drag for smoother movement */
+    transition: none;
+    cursor: grabbing;
+    border: 2px solid rgba(77, 124, 254, 0.7);
 }
 
 /* Counter-rotate icons to maintain original orientation */
@@ -61,71 +77,86 @@
 .sidebar.theme-light {
     background-color: white;
     color: #333;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
 }
 
 .sidebar.theme-dark {
-    background-color: #2c3e50;
-    color: #ecf0f1;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+    background-color: #1e293b;
+    color: #f8fafc;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
 }
 
 .sidebar.theme-dark .map-control-icon {
-    color: #ecf0f1;
+    color: #f8fafc;
 }
 
 .sidebar.theme-dark .map-control-item:hover {
-    background-color: #34495e;
+    background-color: #334155;
 }
 
 .sidebar.theme-dark .map-control-item.active {
-    background-color: #3498db;
+    background-color: #3b82f6;
 }
 
 .sidebar.theme-dark .drag-handle {
-    background-color: #34495e;
-    border-bottom: 1px solid #2c3e50;
+    background-color: #334155;
+    border-bottom: 1px solid #1e293b;
 }
 
 .sidebar.theme-dark .drag-handle i {
-    color: #ecf0f1;
+    color: #f8fafc;
 }
 
 /* Expanded state */
 .sidebar.expanded {
-    width: 200px;
+    width: 160px;
 }
 
 .sidebar.expanded .map-control-item {
     display: flex;
     justify-content: flex-start;
-    padding-left: 12px;
+    padding-left: 10px;
 }
 
 .sidebar.expanded .map-control-icon {
     margin-right: 8px;
 }
 
-/* Drag handle */
+/* Drag handle with improved visual feedback */
 .drag-handle {
     width: 100%;
-    height: 16px;
+    height: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
     background-color: #f8f8f8;
     border-bottom: 1px solid #eaeaea;
     cursor: grab;
-    padding: 4px 0;
+    padding: 3px 0;
+    transition: background-color 0.2s ease;
+}
+
+.drag-handle:hover {
+    background-color: #e8f0ff;
+}
+
+.dragging .drag-handle {
+    background-color: #e0e8ff;
+    cursor: grabbing;
 }
 
 .drag-handle:active {
     cursor: grabbing;
+    background-color: #e0e8ff;
 }
 
 .drag-handle i {
-    font-size: 12px;
+    font-size: 10px;
     color: #888;
+}
+
+.dragging .drag-handle i {
+    color: #4d7cfe;
 }
 
 /* Global event catcher */
@@ -144,7 +175,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 4px 0;
+  padding: 3px 0;
   overflow-y: auto;
 }
 
@@ -154,8 +185,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2px 0;
-  margin-bottom: 2px;
+  padding: 3px 0;
+  margin-bottom: 4px;
   border-bottom: 1px solid #f0f0f0;
 }
 
@@ -221,7 +252,7 @@
 
 /* Bottom section with undo/redo */
 .sidebar-bottom {
-  padding: 4px 0;
+  padding: 3px 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -232,22 +263,26 @@
 .map-control-item {
   width: 32px;
   height: 32px;
-  border-radius: 4px;
-  margin: 1px 0;
+  border-radius: 6px;
+  margin: 2px 0;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .map-control-item:hover {
-  background-color: #f5f5f5;
+  background-color: #f0f4ff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
 }
 
 .map-control-item.active {
-  background-color: #eef2ff;
+  background-color: #e0e8ff;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .map-control-item.active::before {
@@ -269,19 +304,22 @@
   justify-content: center;
   font-size: 14px;
   color: #555;
+  transition: all 0.2s ease;
 }
 
-/* Tooltip for tools */
-.tool-item:hover::after,
+.map-control-item.active .map-control-icon {
+  color: #4d7cfe;
+}
+
+/* Tooltip for tools - more compact */
 .map-control-item:hover::after,
-.drag-handle:hover::after,
-.rotate-handle:hover::after {
+.drag-handle:hover::after {
   content: attr(title);
   position: absolute;
   left: 100%;
   top: 50%;
   transform: translateY(-50%);
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.8);
   color: white;
   padding: 3px 6px;
   border-radius: 4px;
@@ -290,34 +328,40 @@
   z-index: 1001;
   margin-left: 6px;
   pointer-events: none;
-  opacity: 0.9;
+  opacity: 0.95;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Customization panel */
+/* Keyboard shortcut hint in tooltip */
+.map-control-item[data-shortcut]:hover::after {
+  content: attr(title) " (" attr(data-shortcut) ")";
+}
+
+/* Customization panel - more compact */
 .customization-panel {
   position: fixed;
-  top: 100px;
-  left: 80px;
-  width: 250px;
+  top: 20px;
+  left: 70px;
+  width: 220px;
   background-color: white;
   border-radius: 8px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
   z-index: 1002;
   overflow: hidden;
 }
 
-.customization-header {
+.panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 15px;
+  padding: 8px 12px;
   background-color: #f8f8f8;
   border-bottom: 1px solid #eaeaea;
 }
 
-.customization-header h3 {
+.panel-header h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
 }
 
@@ -325,35 +369,47 @@
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 16px;
-  color: #666;
-}
-
-.customization-content {
-  padding: 15px;
-}
-
-.customization-section {
-  margin-bottom: 15px;
-}
-
-.customization-section h4 {
-  margin: 0 0 8px 0;
   font-size: 14px;
+  color: #666;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+}
+
+.close-button:hover {
+  background-color: #f0f0f0;
+}
+
+.panel-content {
+  padding: 12px;
+}
+
+.option-group {
+  margin-bottom: 12px;
+}
+
+.option-group h4 {
+  margin: 0 0 6px 0;
+  font-size: 13px;
   font-weight: 500;
 }
 
 .theme-options {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .theme-option {
-  padding: 6px 12px;
+  padding: 5px 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
   background-color: white;
   cursor: pointer;
+  font-size: 12px;
 }
 
 .theme-option.active {
@@ -362,96 +418,44 @@
   border-color: #4d7cfe;
 }
 
-/* Improved rotation controls in sidebar */
-.rotation-controls {
-  padding: 8px 0;
-  width: 100%;
+.rotation-options {
   display: flex;
-  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
-/* Expanded state for rotation controls */
-.sidebar.expanded .rotation-controls .map-control-item {
-  width: 100%;
-  justify-content: flex-start;
-  padding-left: 12px;
-}
-
-/* Dark theme for rotation controls */
-.sidebar.theme-dark .rotation-controls .map-control-item {
-  background-color: #34495e;
-  color: #3498db;
-}
-
-.sidebar.theme-dark .rotation-controls .map-control-item:hover {
-  background-color: #3498db;
-  color: #ecf0f1;
-}
-
-/* Rotation button in customization panel */
-.rotation-preset-button {
-  padding: 6px 12px;
+.rotation-option {
+  padding: 5px;
   border: 1px solid #ddd;
   border-radius: 4px;
   background-color: white;
   cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s;
-  color: #555;
-  display: block;
-  width: 100%;
-  text-align: center;
-}
-
-.rotation-preset-button:hover {
-  background-color: #f5f5f5;
-}
-
-.rotation-preset-button:active {
-  background-color: #eef2ff;
-  border-color: #4d7cfe;
-  color: #4d7cfe;
-}
-
-/* Toggle control for expanded view */
-.toggle-control {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 30px;
+  font-size: 12px;
 }
 
-.toggle-control label {
-  font-size: 14px;
-  color: #555;
-}
-
-.toggle-button {
-  padding: 6px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: white;
-  cursor: pointer;
-  min-width: 60px;
-  text-align: center;
-}
-
-.toggle-button.active {
+.rotation-option.active {
   background-color: #4d7cfe;
   color: white;
   border-color: #4d7cfe;
 }
 
-input[type="range"] {
-  width: 100%;
-}
-
 .reset-button {
   width: 100%;
-  padding: 8px;
+  padding: 6px;
   background-color: #f44336;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  margin-top: 10px;
+  margin-top: 8px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }

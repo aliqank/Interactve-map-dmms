@@ -26,113 +26,175 @@
 
   
   <!-- Layer Control Panel -->
-  <div *ngIf="showLayerControl" class="control-panel-content">
-    <h3>Map Layers</h3>
+  <div *ngIf="showLayerControl" class="control-panel-content layer-panel">
+    <div class="panel-header">
+      <h3>Map Layers</h3>
+      <button class="close-button" (click)="toggleLayerControl()">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
     <div class="layer-options">
-      <div class="layer-option" [class.active]="selectedLayer === 'roadmap'" (click)="changeMapLayer('roadmap')">
-        <i class="fa fa-road"></i>
-        <span>Road Map</span>
-      </div>
-      <div class="layer-option" [class.active]="selectedLayer === 'satellite'" (click)="changeMapLayer('satellite')">
-        <i class="fa fa-satellite"></i>
-        <span>Satellite</span>
-      </div>
-      <div class="layer-option" [class.active]="selectedLayer === 'hybrid'" (click)="changeMapLayer('hybrid')">
-        <i class="fa fa-globe"></i>
-        <span>Hybrid</span>
-      </div>
-      <div class="layer-option" [class.active]="selectedLayer === 'terrain'" (click)="changeMapLayer('terrain')">
-        <i class="fa fa-mountain"></i>
-        <span>Terrain</span>
-      </div>
-      <div class="layer-option" [class.active]="selectedLayer === 'osm'" (click)="changeMapLayer('osm')">
-        <i class="fa fa-map-marked-alt"></i>
-        <span>OpenStreetMap</span>
+      <div class="layer-option" 
+           *ngFor="let layer of ['roadmap', 'satellite', 'hybrid', 'terrain', 'osm']"
+           [class.active]="selectedLayer === layer"
+           (click)="changeMapLayer(layer)">
+        <i class="fa" 
+           [ngClass]="{
+             'fa-road': layer === 'roadmap',
+             'fa-satellite': layer === 'satellite',
+             'fa-layer-group': layer === 'hybrid',
+             'fa-mountain': layer === 'terrain',
+             'fa-map': layer === 'osm'
+           }"></i>
+        {{ layer | titlecase }}
       </div>
     </div>
   </div>
   
   <!-- Search Control Panel -->
-  <div *ngIf="showSearchControl" class="control-panel-content">
-    <h3>Search Location</h3>
+  <div *ngIf="showSearchControl" class="control-panel-content search-panel">
+    <div class="panel-header">
+      <h3>Search</h3>
+      <button class="close-button" (click)="toggleSearchControl()">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
     <div class="search-box">
-      <div class="input-with-icon">
-        <i class="fa fa-search"></i>
-        <input type="text" [(ngModel)]="searchQuery" (input)="onSearchInput()" placeholder="Enter location...">
-      </div>
+      <input type="text" 
+             [(ngModel)]="searchQuery" 
+             (input)="onSearchInput()" 
+             placeholder="Search location">
+      
       <div *ngIf="isSearching" class="search-loading">
         <i class="fa fa-spinner fa-spin"></i> Searching...
       </div>
-    </div>
-    <div *ngIf="searchResults.length > 0" class="search-results">
-      <div *ngFor="let result of searchResults" class="search-result-item" (click)="goToLocation(result)">
-        <i class="fa fa-map-marker-alt"></i> {{ result.display_name }}
+      
+      <div *ngIf="searchResults.length > 0" class="search-results">
+        <div *ngFor="let result of searchResults" 
+             class="search-result-item"
+             (click)="goToLocation(result)">
+          {{ result.display_name }}
+        </div>
       </div>
     </div>
     
-    <h3>Search by Coordinates</h3>
     <div class="coordinates-search-box">
-      <div class="input-with-icon">
-        <i class="fa fa-crosshairs"></i>
-        <input type="text" [(ngModel)]="coordinatesQuery" placeholder="Lat, Lng (e.g. 51.5074, -0.1278)">
-      </div>
-      <button (click)="searchByCoordinates()" class="search-button">
-        <i class="fa fa-search-location"></i> Search
+      <input type="text" 
+             [(ngModel)]="coordinatesQuery" 
+             placeholder="Lat, Lng (e.g. 51.505, -0.09)">
+      <button (click)="searchByCoordinates()" class="primary-button">
+        <i class="fa fa-search-location"></i> Go
       </button>
     </div>
   </div>
   
   <!-- GeoJSON Control Panel -->
-  <div *ngIf="showGeoJsonControl" class="control-panel-content">
-    <h3>GeoJSON Control</h3>
+  <div *ngIf="showGeoJsonControl" class="control-panel-content geojson-panel">
+    <div class="panel-header">
+      <h3>GeoJSON</h3>
+      <button class="close-button" (click)="toggleGeoJsonControl()">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
     <app-geojson-control [map]="map"></app-geojson-control>
   </div>
   
   <!-- Polygon Control Panel -->
-  <div *ngIf="showPolygonControl" class="control-panel-content">
-    <h3>Polygon Drawing</h3>
-    <p class="instruction-text">
-      <i class="fa fa-info-circle"></i> Click on the map to add polygon points
-    </p>
-    <div class="polygon-actions">
-      <button (click)="finishPolygonDrawing()" class="primary-button">
-        <i class="fa fa-check"></i> Finish
+  <div *ngIf="showPolygonControl" class="control-panel-content polygon-panel">
+    <div class="panel-header">
+      <h3>Draw Polygon</h3>
+      <button class="close-button" (click)="togglePolygonControl()">
+        <i class="fa fa-times"></i>
       </button>
-      <button (click)="cancelPolygonDrawing()" class="secondary-button">
-        <i class="fa fa-times"></i> Cancel
+    </div>
+    
+    <div *ngIf="!showPolygonNameInput">
+      <p class="instruction-text">Click on the map to add points</p>
+      
+      <div class="polygon-actions">
+        <button (click)="finishPolygonDrawing()" 
+                [disabled]="tempPolygonPoints.length < 3"
+                class="primary-button">
+          <i class="fa fa-check"></i> Finish
+        </button>
+        <button (click)="cancelPolygonDrawing()" class="secondary-button">
+          <i class="fa fa-times"></i> Cancel
+        </button>
+      </div>
+    </div>
+    
+    <div *ngIf="showPolygonNameInput" class="name-input-container">
+      <input type="text" 
+             [(ngModel)]="newPolygonName" 
+             placeholder="Polygon name"
+             autofocus>
+      <button (click)="savePolygonAsFavorite()" 
+              [disabled]="!newPolygonName.trim()"
+              class="success-button">
+        <i class="fa fa-save"></i> Save
       </button>
     </div>
   </div>
   
+  <!-- Data Sending Control Panel -->
+  <div *ngIf="showDataSendingControl" class="control-panel-content data-panel">
+    <div class="panel-header">
+      <h3>Data Sending</h3>
+      <button class="close-button" (click)="toggleDataSendingControl()">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+    <p class="instruction-text">Click on the map to send coordinates to API</p>
+    <div class="api-status">
+      <div class="status-item">
+        <span class="status-label">API:</span>
+        <span class="status-active">Active</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">Endpoint:</span>
+        <span class="status-value">{{ apiSettings.apiUrl | slice:0:20 }}...</span>
+      </div>
+    </div>
+  </div>
+  
   <!-- Settings Control Panel -->
-  <div *ngIf="showSettingsControl" class="control-panel-content">
-    <h3>API Settings</h3>
+  <div *ngIf="showSettingsControl" class="control-panel-content settings-panel">
+    <div class="panel-header">
+      <h3>API Settings</h3>
+      <button class="close-button" (click)="toggleSettingsControl()">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
     <div class="settings-form">
       <div class="form-group">
-        <label for="apiUrl">API Endpoint</label>
-        <input type="text" id="apiUrl" [(ngModel)]="apiSettings.apiUrl" placeholder="Enter API URL">
+        <label for="apiUrl">API URL</label>
+        <input type="text" id="apiUrl" [(ngModel)]="apiSettings.apiUrl" placeholder="API URL">
       </div>
       <div class="form-group">
         <label for="bearerId">Bearer ID</label>
-        <input type="text" id="bearerId" [(ngModel)]="apiSettings.bearerId" placeholder="Enter Bearer ID">
+        <input type="text" id="bearerId" [(ngModel)]="apiSettings.bearerId" placeholder="Bearer ID">
       </div>
       <div class="form-group">
         <label for="trackerId">Tracker ID</label>
-        <input type="text" id="trackerId" [(ngModel)]="apiSettings.trackerId" placeholder="Enter Tracker ID">
+        <input type="text" id="trackerId" [(ngModel)]="apiSettings.trackerId" placeholder="Tracker ID">
       </div>
       <button (click)="saveSettings()" class="success-button">
-        <i class="fa fa-save"></i> Save Settings
+        <i class="fa fa-save"></i> Save
       </button>
     </div>
   </div>
   
   <!-- Favorites Control Panel -->
-  <div *ngIf="showFavoritesControl" class="control-panel-content">
-    <h3>Favorite Polygons</h3>
+  <div *ngIf="showFavoritesControl" class="control-panel-content favorites-panel">
+    <div class="panel-header">
+      <h3>Favorites</h3>
+      <button class="close-button" (click)="toggleFavoritesControl()">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
     <div *ngIf="favoritePolygons.length === 0" class="no-favorites">
       <i class="fa fa-star"></i>
-      <p>No favorite polygons saved yet.</p>
-      <p>Draw a polygon and save it to see it here.</p>
+      <p>No favorites yet</p>
     </div>
     <div *ngIf="favoritePolygons.length > 0" class="favorites-list">
       <div *ngFor="let favorite of favoritePolygons" class="favorite-item" [class.active]="currentPolygonId === favorite.id">
@@ -140,35 +202,19 @@
           <h4>
             {{ favorite.name }}
             <span *ngIf="currentPolygonId === favorite.id" class="current-badge">
-              <i class="fa fa-check"></i> Current
+              <i class="fa fa-check"></i>
             </span>
           </h4>
           <small>{{ favorite.createdAt | date:'short' }}</small>
         </div>
         <div class="favorite-actions">
-          <button class="icon-button" (click)="loadFavoritePolygon(favorite)" title="Load this polygon">
+          <button class="icon-button" (click)="loadFavoritePolygon(favorite)" title="Load">
             <i class="fa fa-map-marker-alt"></i>
           </button>
-          <button class="icon-button delete" (click)="deleteFavoritePolygon(favorite)" title="Delete this polygon">
+          <button class="icon-button delete" (click)="deleteFavoritePolygon(favorite)" title="Delete">
             <i class="fa fa-trash"></i>
           </button>
         </div>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Polygon Name Input -->
-  <div *ngIf="showPolygonNameInput" class="control-panel-content">
-    <h3>Save Polygon</h3>
-    <div class="input-group">
-      <input type="text" class="form-input" [(ngModel)]="newPolygonName" placeholder="Enter a name for this polygon">
-      <div class="button-group">
-        <button (click)="savePolygonAsFavorite()" class="success-button">
-          <i class="fa fa-save"></i> Save
-        </button>
-        <button (click)="showPolygonNameInput = false" class="secondary-button">
-          <i class="fa fa-times"></i> Cancel
-        </button>
       </div>
     </div>
   </div>
