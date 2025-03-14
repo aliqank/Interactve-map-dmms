@@ -770,21 +770,19 @@ button:disabled {
 /* Add new styles for the modal panel design */
 .modal-panel {
   position: fixed;
-  left: 400px; /* Position to the right of the sidebar */
-  top: 20px; /* Position at the top of the screen with some margin */
+  left: 70px; /* Position next to the sidebar */
+  top: 20px; /* Changed from 100px to 20px to match sidebar */
   z-index: 1000;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  width: 320px;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  width: 300px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+  max-height: 80vh;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
   animation: fadeIn 0.3s ease;
-  max-height: calc(100vh - 40px); /* Ensure it doesn't exceed viewport height */
-  cursor: default;
-  /* Add these properties to store position */
-  transition: none; /* Remove transition for dragging */
 }
 
 .settings-modal {
@@ -795,10 +793,9 @@ button:disabled {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid #eee;
-  cursor: move; /* Show move cursor on header */
-  user-select: none; /* Prevent text selection during drag */
+  padding: 12px 16px;
+  background-color: #f8f8f8;
+  border-bottom: 1px solid #eaeaea;
 }
 
 .modal-header h3 {
@@ -812,41 +809,32 @@ button:disabled {
 }
 
 .modal-header h3 i {
-  color: #555;
+  color: #4d7cfe;
 }
 
 .modal-close {
   background: none;
   border: none;
-  cursor: pointer;
-  color: #888;
-  font-size: 16px;
-  padding: 4px;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  cursor: pointer;
+  color: #666;
   transition: all 0.2s ease;
 }
 
 .modal-close:hover {
-  background-color: #f5f5f5;
-  color: #333;
+  background-color: #f0f0f0;
+  color: #ff4d4f;
 }
 
 .modal-content {
-  padding: 20px;
+  padding: 16px;
   overflow-y: auto;
-  max-height: 60vh;
-  box-sizing: border-box;
-  width: 100%;
-}
-
-.modal-footer {
-  padding: 16px 20px;
-  border-top: 1px solid #eee;
-  display: flex;
-  justify-content: center;
+  max-height: calc(80vh - 50px);
 }
 
 /* Settings form styling */
@@ -1187,16 +1175,18 @@ button:disabled {
 /* Responsive positioning for smaller screens */
 @media (max-width: 768px) {
   .modal-panel {
-    left: 70px; /* Position next to the sidebar on smaller screens */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 400px;
   }
 }
 
 @media (max-width: 480px) {
   .modal-panel {
-    left: 10px;
-    right: 10px;
-    width: calc(100% - 20px); /* Full width with margins */
-    max-width: none;
+    width: 95%;
+    top: 10px;
+    max-height: 85vh;
   }
 }
 
