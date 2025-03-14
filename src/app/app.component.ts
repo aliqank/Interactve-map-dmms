@@ -295,6 +295,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.showPolygonControl = false;
     this.showDataSendingControl = false;
     this.showSettingsControl = false;
+    this.showFavoritesControl = false;
     
     // If toolId is null, it means no tool is selected
     if (toolId === null) {
@@ -303,33 +304,35 @@ export class AppComponent implements AfterViewInit, OnInit {
     
     // Handle specific tool actions
     switch(toolId) {
-      case 'magic':
-        // Magic select tool functionality
+      case 'layer':
+        this.showLayerControl = true;
         break;
-      case 'cursor':
-        // Cursor tool functionality
+      case 'search':
+        this.showSearchControl = true;
         break;
-      case 'rectangle':
-        // Rectangle tool functionality
+      case 'measure':
+        this.showMeasureControl = true;
+        break;
+      case 'geojson':
+        this.showGeoJsonControl = true;
+        break;
+      case 'polygon':
         this.showPolygonControl = true;
         break;
-      case 'text':
-        // Text tool functionality
+      case 'dataSending':
+        this.showDataSendingControl = true;
         break;
-      case 'shapes':
-        // Shapes tool functionality
+      case 'settings':
+        this.showSettingsControl = true;
         break;
-      case 'connector':
-        // Connector tool functionality
+      case 'favorites':
+        this.showFavoritesControl = true;
         break;
-      case 'frame':
-        // Frame tool functionality
-        break;
-      case 'comment':
-        // Comment tool functionality
+      // Legacy tool IDs from before refactoring
+      case 'rectangle':
+        this.showPolygonControl = true;
         break;
       case 'add':
-        // Add tool functionality
         this.showGeoJsonControl = true;
         break;
     }
