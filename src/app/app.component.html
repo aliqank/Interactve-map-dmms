@@ -207,3 +207,11 @@
   </app-favorites>
   
   <!-- Data Sending Control Panel -->
+  <app-data-sending
+    [isVisible]="showDataSendingControl"
+    [map]="map"
+    [apiSettings]="apiSettings"
+    [apiError]="apiError"
+    (visibilityChange)="toggleDataSendingControl()"
+    (apiErrorChange)="apiError = $event">
+  </app-data-sending>

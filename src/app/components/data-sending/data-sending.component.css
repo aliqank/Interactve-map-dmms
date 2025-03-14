@@ -1,0 +1,163 @@
+.data-sending-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 0 16px 0;
+}
+
+.data-sending-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.data-sending-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.data-sending-status i {
+  color: #868e96;
+  font-size: 16px;
+}
+
+.data-sending-status.active i {
+  color: #2b8a3e;
+}
+
+.data-sending-instructions {
+  padding: 10px;
+  background-color: #e7f5ff;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.data-sending-instructions p {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.data-sending-instructions i {
+  color: #1971c2;
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.api-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.api-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.api-label {
+  font-weight: 500;
+  color: #495057;
+}
+
+.api-value {
+  font-family: monospace;
+  word-break: break-all;
+  padding: 4px 8px;
+  background-color: #e9ecef;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.api-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  background-color: #ebfbee;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.api-status i {
+  color: #2b8a3e;
+}
+
+.api-status.error {
+  background-color: #fff5f5;
+}
+
+.api-status.error i {
+  color: #e03131;
+}
+
+.data-sending-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.data-sending-button {
+  padding: 10px 20px;
+  background-color: #4d7cfe;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.data-sending-button:hover {
+  background-color: #3a6efd;
+  transform: translateY(-1px);
+}
+
+.data-sending-button:active {
+  transform: translateY(0);
+}
+
+.data-sending-button.active {
+  background-color: #e03131;
+}
+
+.data-sending-button.active:hover {
+  background-color: #c92a2a;
+}
+
+/* Compact popup styles */
+:host ::ng-deep .compact-popup {
+  padding: 0;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: none;
+}
+
+:host ::ng-deep .compact-popup .leaflet-popup-content {
+  margin: 0;
+  padding: 4px;
+}
+
+:host ::ng-deep .compact-popup .leaflet-popup-content-wrapper {
+  padding: 0;
+  border-radius: 4px;
+}
+
+:host ::ng-deep .compact-popup .leaflet-popup-tip {
+  background-color: white;
+} 
