@@ -2,7 +2,6 @@ import { AfterViewInit, Component, OnInit, Renderer2 } from '@angular/core';
 import * as L from 'leaflet';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Loader } from '@googlemaps/js-api-loader';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { debounceTime, distinctUntilChanged, Subject, timeout, TimeoutError } from 'rxjs';
 import { GeoJsonControlComponent } from './components/geojson-control/geojson-control.component';
@@ -17,6 +16,7 @@ import { SettingsComponent } from './components/settings/settings.component';
 import { DataSendingComponent } from './components/data-sending/data-sending.component';
 import { StorageService, FavoritePolygon, ApiSettings } from './services/storage.service';
 import { ToastService } from './services/toast.service';
+import { MapService } from './services/map.service';
 
 @Component({
   selector: 'app-root',
@@ -41,10 +41,6 @@ import { ToastService } from './services/toast.service';
 })
 export class AppComponent implements AfterViewInit, OnInit {
   public map!: L.Map;
-  private googleMapsLoaded = false;
-  private googleMapsLoader!: Loader;
-  private baseLayers: {[key: string]: L.TileLayer} = {};
-  private layerControl!: L.Control.Layers;
   private searchMarker: L.Marker | null = null;
   private locationMarker: L.Marker | null = null;
   public measurePoints: L.Layer[] = [];
@@ -56,14 +52,10 @@ export class AppComponent implements AfterViewInit, OnInit {
   private tempPolygonMarkers: L.Marker[] = [];
   private tempPolygon: L.Polygon | null = null;
   
-  // You need to replace this with your actual Google Maps API key
-  private googleMapsApiKey = 'test';
-
   // UI control properties
   searchQuery = '';
   coordinatesQuery = '';
   searchResults: any[] = [];
-  selectedLayer = 'roadmap';
   showLayerControl = false;
   showSearchControl = false;
   showMeasureControl = false;
@@ -150,7 +142,8 @@ export class AppComponent implements AfterViewInit, OnInit {
     private http: HttpClient, 
     private renderer: Renderer2,
     private storageService: StorageService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private mapService: MapService
   ) {
     // Set up search with debounce
     this.searchSubject.pipe(
@@ -176,22 +169,10 @@ export class AppComponent implements AfterViewInit, OnInit {
   }
 
   ngOnInit(): void {
-    // Initialize the Google Maps loader
-    this.googleMapsLoader = new Loader({
-      apiKey: this.googleMapsApiKey,
-      version: 'weekly'
-    });
-    
     // Load saved polygon coordinates from localStorage if available
     const savedCoordinates = this.storageService.loadPolygonCoordinates();
     if (savedCoordinates) {
       this.coordinatesInput = savedCoordinates;
-    }
-    
-    // Load saved map layer from localStorage if available
-    const savedLayer = this.storageService.loadSelectedMapLayer();
-    if (savedLayer) {
-      this.selectedLayer = savedLayer;
     }
     
     // Load saved API settings from localStorage if available
@@ -534,40 +515,11 @@ export class AppComponent implements AfterViewInit, OnInit {
   }
 
   deleteFavoritePolygon(favorite: FavoritePolygon): void {
-    // If deleting the current polygon, clear the current polygon
-    if (this.currentPolygonId === favorite.id) {
-      this.coordinatesInput = [];
-      this.currentPolygonId = null;
-      this.storageService.saveCurrentPolygonId(null);
-      this.updateBorders();
-    }
-
     this.favoritePolygons = this.favoritePolygons.filter(p => p.id !== favorite.id);
     this.storageService.saveFavoritePolygons(this.favoritePolygons);
     this.toastService.success(`Deleted polygon: ${favorite.name}`);
   }
 
-  // Change the map layer
-  changeMapLayer(layerType: string): void {
-    this.selectedLayer = layerType;
-    
-    // Save selected layer to localStorage
-    localStorage.setItem('selectedMapLayer', layerType);
-    
-    // Remove all current base layers
-    Object.values(this.baseLayers).forEach(layer => {
-      if (this.map.hasLayer(layer)) {
-        this.map.removeLayer(layer);
-      }
-    });
-    
-    // Add the selected layer
-    if (this.baseLayers[layerType]) {
-      this.baseLayers[layerType].addTo(this.map);
-      this.showToast(`Map changed to ${layerType} view`);
-    }
-  }
-  
   // Search functionality
   onSearchInput(): void {
     this.searchSubject.next(this.searchQuery);
@@ -868,12 +820,8 @@ export class AppComponent implements AfterViewInit, OnInit {
     // Get bounds from coordinates
     const bounds = L.latLngBounds(this.coordinates);
     
-    this.map = L.map('map', {
-      center: [0, 0],  // Center at equator/prime meridian to show whole world
-      zoom: 2,         // Lower zoom level to show the entire world
-      maxBoundsViscosity: 0.0,  // Allow free movement around the world
-      worldCopyJump: true       // Enable smooth navigation when crossing date line
-    });
+    // Initialize the map using MapService
+    this.map = this.mapService.initializeMap('map');
     
     // Add click event listener to display coordinates and send to API
     this.map.on('click', (e: L.LeafletMouseEvent) => {
@@ -904,72 +852,13 @@ export class AppComponent implements AfterViewInit, OnInit {
       // We no longer need to handle data sending here as it's now handled by the DataSendingComponent
     });
 
-    // Load Google Maps
-    this.googleMapsLoader.load().then(() => {
-      this.googleMapsLoaded = true;
-      
-      // Create different map layers
-      this.baseLayers = {
-        'roadmap': L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-          subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-          attribution: '© Google Maps',
-          noWrap: false
-        }),
-        'satellite': L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-          subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-          attribution: '© Google Maps',
-          noWrap: false
-        }),
-        'hybrid': L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
-          subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-          attribution: '© Google Maps',
-          noWrap: false
-        }),
-        'terrain': L.tileLayer('https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', {
-          subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-          attribution: '© Google Maps',
-          noWrap: false
-        }),
-        'osm': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors',
-          noWrap: false
-        })
-      };
-      
-      // Add the saved layer or default to roadmap
-      this.baseLayers[this.selectedLayer].addTo(this.map);
-      
-      // Show the world first, then animate to the bounds after a short delay
-      setTimeout(() => {
-        this.map.flyToBounds(bounds, {
-          duration: 1.5,  // Animation duration in seconds
-          easeLinearity: 0.5
-        });
-      }, 1000);
-    }).catch(error => {
-      console.error('Error loading Google Maps:', error);
-      
-      // Fallback to OpenStreetMap if Google Maps fails to load
-      this.baseLayers = {
-        'osm': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors',
-          noWrap: false
-        })
-      };
-      
-      // Add the OpenStreetMap layer
-      this.baseLayers['osm'].addTo(this.map);
-      this.selectedLayer = 'osm';
-      localStorage.setItem('selectedMapLayer', 'osm');
-      
-      // Show the world first, then animate to the bounds after a short delay
-      setTimeout(() => {
-        this.map.flyToBounds(bounds, {
-          duration: 1.5,  // Animation duration in seconds
-          easeLinearity: 0.5
-        });
-      }, 1000);
-    });
+    // Fit map to bounds after a short delay
+    setTimeout(() => {
+      this.map.flyToBounds(bounds, {
+        duration: 1.5,  // Animation duration in seconds
+        easeLinearity: 0.5
+      });
+    }, 1000);
   }
 
   private handleMapClickForPolygon(e: L.LeafletMouseEvent): void {

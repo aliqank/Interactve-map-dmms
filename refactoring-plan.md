@@ -93,22 +93,21 @@
 
 ## Implementation Steps
 
-1. ✅ Create a detailed refactoring plan (this document)
-2. ✅ Set up the component structure
-3. ✅ Create shared components (Modal, Toast)
-4. ✅ Create services (ToastService, StorageService)
-5. ✅ Create the LayerControlComponent
-6. ✅ Create the SearchComponent
-7. ✅ Create the GeoJsonControlComponent
-8. ✅ Create the MeasurementComponent
-9. ✅ Create the PolygonDrawComponent
-10. ✅ Create the FavoritesComponent
-11. ✅ Create the SettingsComponent
-12. ✅ Create the DataSendingComponent
-13. ☐ Update the AppComponent to use all the new components
-14. ☐ Clean up CSS and ensure consistent styling
-15. ☐ Add tests for the new components
-16. ☐ Final review and refactoring
+1. ✅ Create a basic component structure
+2. ✅ Create a ToastComponent and ToastService for notifications
+3. ✅ Create a LayerControlComponent for map layer switching
+4. ✅ Create a SearchComponent for location search
+5. ✅ Create a MeasurementComponent for distance measurement
+6. ✅ Create a PolygonDrawComponent for drawing polygons
+7. ✅ Create a DataSendingComponent for API communication
+8. ✅ Update AppComponent to use LayerControlComponent
+9. ☐ Update AppComponent to use SearchComponent
+10. ☐ Update AppComponent to use MeasurementComponent
+11. ☐ Update AppComponent to use PolygonDrawComponent
+12. ☐ Update AppComponent to use FavoritesComponent
+13. ☐ Clean up CSS and ensure consistent styling
+14. ☐ Add tests for the new components
+15. ☐ Final review and refactoring
 
 ## Benefits of This Approach
 - **Single Responsibility Principle**: Each component has a clear, focused responsibility

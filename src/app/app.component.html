@@ -27,32 +27,7 @@
 
   
   <!-- Layer Control Panel -->
-  <div *ngIf="showLayerControl" class="modal-panel layer-modal" #layerModal (mousedown)="startModalDrag($event, layerModal)" (touchstart)="startModalDrag($event, layerModal)">
-    <div class="modal-header">
-      <h3><i class="fa fa-layer-group"></i> Map Layers</h3>
-      <button class="modal-close" (click)="toggleLayerControl()">
-        <i class="fa fa-times"></i>
-      </button>
-    </div>
-    <div class="modal-content">
-      <div class="layer-options">
-        <div class="layer-option" 
-             *ngFor="let layer of ['roadmap', 'satellite', 'hybrid', 'terrain', 'osm']"
-             [class.active]="selectedLayer === layer"
-             (click)="changeMapLayer(layer)">
-          <i class="fa" 
-             [ngClass]="{
-               'fa-road': layer === 'roadmap',
-               'fa-satellite': layer === 'satellite',
-               'fa-layer-group': layer === 'hybrid',
-               'fa-mountain': layer === 'terrain',
-               'fa-map': layer === 'osm'
-             }"></i>
-          {{ layer | titlecase }}
-        </div>
-      </div>
-    </div>
-  </div>
+  <app-layer-control *ngIf="showLayerControl"></app-layer-control>
   
   <!-- Search Control Panel -->
   <div *ngIf="showSearchControl" class="modal-panel search-modal" #searchModal (mousedown)="startModalDrag($event, searchModal)" (touchstart)="startModalDrag($event, searchModal)">
