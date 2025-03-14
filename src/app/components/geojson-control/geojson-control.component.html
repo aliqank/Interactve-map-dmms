@@ -1,4 +1,4 @@
-<div class="geojson-control">
+<app-modal [isVisible]="isVisible" [title]="'GeoJSON Layers'" [icon]="'map'" [modalType]="'tool'" (close)="toggleVisibility()">
   <h3>GeoJSON Layers</h3>
   
   <!-- File Upload Section -->
@@ -54,7 +54,7 @@
                class="color-preset" 
                [style.background-color]="preset.color"
                (click)="applyColorPreset(preset)"
-               title="{{ preset.name }}">
+               [title]="preset.color">
           </div>
         </div>
         
@@ -97,4 +97,4 @@
       <i class="fa fa-map"></i> Load Sample GeoJSON
     </button>
   </div>
-</div>
+</div></app-modal>
