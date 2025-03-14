@@ -64,6 +64,7 @@ export interface ControlItem {
 })
 export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
   @Input() map!: L.Map;
+  @Input() apiError: boolean = false;
   @Output() toolSelected = new EventEmitter<string | null>();
   @ViewChild('sidebarElement') sidebarElement!: ElementRef;
   

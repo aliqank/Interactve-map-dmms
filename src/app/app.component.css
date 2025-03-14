@@ -1343,3 +1343,30 @@ button:disabled {
   background-color: #ffe3e3;
   color: #e03131;
 }
+
+/* Compact data modal styles */
+.compact-data-modal {
+  width: 280px;
+}
+
+.compact-data-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.compact-data-status i {
+  font-size: 10px;
+}
+
+.compact-data-status i.status-active {
+  color: #2b8a3e;
+}
+
+.compact-data-status i.status-error {
+  color: #e03131;
+}

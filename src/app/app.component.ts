@@ -300,7 +300,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.dataSendingMode = this.showDataSendingControl;
     
     if (this.dataSendingMode) {
-      this.showToast('Data sending mode activated. Click on the map to send coordinates to API.', 'info');
+      this.showToast(`Data sending mode activated. API: ${this.apiSettings.apiUrl.slice(0, 20)}... Click map to send coordinates.`, 'info');
       this.apiError = false; // Reset error state when activating
     } else {
       this.showToast('Data sending mode deactivated.', 'info');

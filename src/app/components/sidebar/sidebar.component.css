@@ -459,3 +459,39 @@
   justify-content: center;
   gap: 6px;
 }
+
+/* Add a special indicator for data sending mode */
+.map-control-item[title="Send Data"].active {
+  position: relative;
+  background-color: rgba(66, 99, 235, 0.2);
+  animation: pulse 2s infinite;
+}
+
+.map-control-item[title="Send Data"].active::after {
+  content: "";
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #2b8a3e;
+  box-shadow: 0 0 5px rgba(43, 138, 62, 0.8);
+}
+
+.map-control-item[title="Send Data"].active.error::after {
+  background-color: #e03131;
+  box-shadow: 0 0 5px rgba(224, 49, 49, 0.8);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(66, 99, 235, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(66, 99, 235, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(66, 99, 235, 0);
+  }
+}

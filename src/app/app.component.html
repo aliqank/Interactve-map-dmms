@@ -1,6 +1,7 @@
 <div id="map"></div>
 
 <app-sidebar [map]="map" 
+             [apiError]="apiError"
              (toolSelected)="handleToolSelection($event)"
              (layerControlToggled)="toggleLayerControl()"
              (searchControlToggled)="toggleSearchControl()"
@@ -183,34 +184,6 @@
                 class="save-polygon-button">
           <i class="fa fa-save"></i> Save Polygon
         </button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Data Sending Control Panel -->
-  <div *ngIf="showDataSendingControl" class="modal-panel data-modal" #dataModal (mousedown)="startModalDrag($event, dataModal)" (touchstart)="startModalDrag($event, dataModal)">
-    <div class="modal-header">
-      <h3><i class="fa fa-paper-plane"></i> Send Data</h3>
-      <button class="modal-close" (click)="toggleDataSendingControl()">
-        <i class="fa fa-times"></i>
-      </button>
-    </div>
-    <div class="modal-content">
-      <div class="setting-label">
-        <i class="fa fa-server"></i> API Status
-      </div>
-      <div class="api-status-display">
-        <div class="status-indicator" [ngClass]="{'active': true, 'error': apiError}">
-          <i class="fa fa-circle"></i>
-          <span>{{ apiError ? 'Error' : 'Connected' }}</span>
-        </div>
-        <div class="api-url">
-          {{ apiSettings.apiUrl | slice:0:30 }}{{ apiSettings.apiUrl.length > 30 ? '...' : '' }}
-        </div>
-      </div>
-      <div class="data-instructions">
-        <i class="fa fa-info-circle"></i>
-        <span>Click anywhere on the map to send coordinates to the API</span>
       </div>
     </div>
   </div>

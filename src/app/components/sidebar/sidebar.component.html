@@ -19,6 +19,7 @@
       <div class="map-control-item" 
            *ngFor="let item of controlItems | filterByGroup:group"
            [class.active]="item.isActive"
+           [class.error]="item.id === 'dataSending' && apiError"
            (click)="item.action()"
            [title]="item.title"
            [attr.data-shortcut]="getShortcutForTool(item.id)">
