@@ -2,7 +2,7 @@
 #map {
   height: 100vh;
   width: 100vw;
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   z-index: 1;
@@ -10,6 +10,7 @@
   outline: none;
   margin: 0;
   padding: 0;
+  background-color: #f0f0f0; /* Add a background color to see if the container is visible */
 }
 
 /* Control panel content styling for Miro-like sidebar panels */

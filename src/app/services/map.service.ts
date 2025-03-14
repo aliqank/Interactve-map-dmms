@@ -59,35 +59,57 @@ export class MapService {
    * @returns The initialized map instance
    */
   initializeMap(elementId: string): L.Map {
-    // Create the map
-    this.map = L.map(elementId, {
-      center: [51.1694, 71.4491], // Astana, Kazakhstan
-      zoom: 13,
-      zoomControl: false,
-      attributionControl: false
-    });
+    try {
+      // Create the map
+      this.map = L.map(elementId, {
+        center: [51.1694, 71.4491], // Astana, Kazakhstan
+        zoom: 13,
+        zoomControl: false,
+        attributionControl: false
+      });
 
-    // Add zoom control to the bottom right
-    L.control.zoom({
-      position: 'bottomright'
-    }).addTo(this.map);
+      // Add zoom control to the bottom right
+      L.control.zoom({
+        position: 'bottomright'
+      }).addTo(this.map);
 
-    // Add attribution control to the bottom right
-    L.control.attribution({
-      position: 'bottomright'
-    }).addTo(this.map);
+      // Add attribution control to the bottom right
+      L.control.attribution({
+        position: 'bottomright'
+      }).addTo(this.map);
 
-    // Initialize base layers
-    this.initializeBaseLayers();
+      // Initialize base layers
+      this.initializeBaseLayers();
 
-    // Add the default layer to the map
-    const defaultLayer = this.getSelectedLayer();
-    this.baseLayers[defaultLayer].addTo(this.map);
+      // Add a fallback OSM layer in case Google Maps layers aren't loaded yet
+      if (!this.baseLayers['osm']) {
+        this.baseLayers['osm'] = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        });
+      }
 
-    // Initialize layer control
-    this.initializeLayerControl();
+      // Add the default layer to the map
+      const defaultLayer = this.getSelectedLayer();
+      if (this.baseLayers[defaultLayer]) {
+        this.baseLayers[defaultLayer].addTo(this.map);
+      } else {
+        // Fallback to OSM if the default layer isn't available
+        this.baseLayers['osm'].addTo(this.map);
+      }
 
-    return this.map;
+      // Initialize layer control
+      this.initializeLayerControl();
+
+      // Force a resize event to ensure the map renders correctly
+      setTimeout(() => {
+        this.map.invalidateSize();
+      }, 100);
+
+      return this.map;
+    } catch (error) {
+      console.error('Error initializing map:', error);
+      throw error;
+    }
   }
 
   /**
@@ -234,6 +256,14 @@ export class MapService {
    */
   getMap(): L.Map {
     return this.map;
+  }
+
+  /**
+   * Set the map instance
+   * @param map The map instance to set
+   */
+  setMap(map: L.Map): void {
+    this.map = map;
   }
 
   /**

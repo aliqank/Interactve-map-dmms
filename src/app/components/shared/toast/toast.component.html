@@ -1,14 +1,16 @@
-<div 
-  *ngIf="visible"
-  [@toastAnimation]="visible ? 'visible' : 'void'"
-  class="toast-container"
-  [ngClass]="[type, position]"
->
-  <div class="toast-content">
-    <i class="fa {{ iconClass }}"></i>
-    <span class="toast-message">{{ message }}</span>
-    <button class="toast-close" (click)="hideToast()">
-      <i class="fa fa-times"></i>
-    </button>
+<div class="toast-container" [ngClass]="position">
+  <div 
+    *ngFor="let toast of toasts"
+    [@toastAnimation]="'visible'"
+    class="toast"
+    [ngClass]="toast.type"
+  >
+    <div class="toast-content">
+      <i class="fa {{ getIconClass(toast.type) }}"></i>
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" (click)="removeToast(toast)">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
   </div>
 </div> 

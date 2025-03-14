@@ -18,6 +18,7 @@ import { ModalComponent } from '../shared/modal/modal.component';
 })
 export class SearchComponent implements OnInit, OnDestroy, OnChanges {
   @Input() isVisible = false;
+  @Input() map!: L.Map;
   @Output() visibilityChange = new EventEmitter<boolean>();
   
   searchQuery = '';
@@ -26,7 +27,6 @@ export class SearchComponent implements OnInit, OnDestroy, OnChanges {
   isSearching = false;
   private searchSubject = new Subject<string>();
   private searchSubscription: Subscription | null = null;
-  private map!: L.Map;
   private markers: L.Marker[] = [];
 
   constructor(
@@ -36,7 +36,9 @@ export class SearchComponent implements OnInit, OnDestroy, OnChanges {
   ) { }
 
   ngOnInit(): void {
-    this.map = this.mapService.getMap();
+    if (!this.map) {
+      this.map = this.mapService.getMap();
+    }
     
     // Setup search debounce
     this.searchSubscription = this.searchSubject.pipe(

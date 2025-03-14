@@ -1,8 +1,11 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, state, style, animate, transition } from '@angular/animations';
+import { ToastService, ToastEvent } from '../../../services/toast.service';
+import { Subscription } from 'rxjs';
 
 export type ToastType = 'success' | 'error' | 'info';
+export type ToastPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
 
 @Component({
   selector: 'app-toast',
@@ -29,19 +32,38 @@ export class ToastComponent implements OnInit, OnDestroy {
   @Input() message: string = '';
   @Input() type: ToastType = 'info';
   @Input() duration: number = 3000; // Duration in milliseconds
-  @Input() position: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' = 'bottom-right';
   
   @Output() hide = new EventEmitter<void>();
 
   visible = false;
   private timeoutId: any;
+  private subscription: Subscription | null = null;
+  
+  // Array to store multiple toasts
+  toasts: ToastEvent[] = [];
+  
+  // Position for the container - will use the position of the most recent toast
+  position: ToastPosition = 'bottom-right';
+
+  constructor(private toastService: ToastService) {}
 
   ngOnInit(): void {
-    this.show();
+    // Subscribe to toast events
+    this.subscription = this.toastService.toastEvents.subscribe(event => {
+      this.toasts.push(event);
+      // Update the container position to match the most recent toast
+      this.position = event.position;
+      setTimeout(() => {
+        this.removeToast(event);
+      }, event.duration);
+    });
   }
 
   ngOnDestroy(): void {
     this.clearTimeout();
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 
   /**
@@ -84,10 +106,21 @@ export class ToastComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Get the icon class based on the toast type
+   * Remove a toast from the array
+   * @param toast The toast to remove
    */
-  get iconClass(): string {
-    switch (this.type) {
+  removeToast(toast: ToastEvent): void {
+    const index = this.toasts.indexOf(toast);
+    if (index !== -1) {
+      this.toasts.splice(index, 1);
+    }
+  }
+
+  /**
+   * Get the icon class for the toast type
+   */
+  getIconClass(type: ToastType): string {
+    switch (type) {
       case 'success':
         return 'fa-check-circle';
       case 'error':

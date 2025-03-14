@@ -18,6 +18,7 @@ export class PolygonDrawComponent implements OnInit, OnDestroy, OnChanges {
   @Input() isVisible = false;
   @Input() map!: L.Map;
   @Output() visibilityChange = new EventEmitter<boolean>();
+  @Output() favoriteSaved = new EventEmitter<FavoritePolygon>();
   
   showPolygonNameInput = false;
   newPolygonName = '';
@@ -41,10 +42,20 @@ export class PolygonDrawComponent implements OnInit, OnDestroy, OnChanges {
       this.map = this.mapService.getMap();
     }
     this.favoritePolygons = this.storageService.loadFavoritePolygons();
+    console.log('PolygonDraw: Loaded favorite polygons from storage:', this.favoritePolygons);
+    
     this.currentPolygonId = this.storageService.loadCurrentPolygonId();
+    console.log('PolygonDraw: Loaded current polygon ID from storage:', this.currentPolygonId);
+    
     const savedCoordinates = this.storageService.loadPolygonCoordinates();
     if (savedCoordinates) {
       this.coordinatesInput = savedCoordinates;
+      console.log('PolygonDraw: Loaded saved coordinates:', this.coordinatesInput);
+      
+      // If we have coordinates and we're not in draw mode, display the polygon
+      if (!this.drawPolygonMode && this.coordinatesInput.length >= 3) {
+        this.updateBorders();
+      }
     }
     
     // Initialize with current visibility state
@@ -68,6 +79,13 @@ export class PolygonDrawComponent implements OnInit, OnDestroy, OnChanges {
         } else {
           this.deactivatePolygonDrawMode();
           this.clearTempPolygon();
+          
+          // Check if we need to update the borders (e.g., if a favorite was loaded)
+          const savedCoordinates = this.storageService.loadPolygonCoordinates();
+          if (savedCoordinates && savedCoordinates.length >= 3) {
+            this.coordinatesInput = savedCoordinates;
+            this.updateBorders();
+          }
         }
       }
     }
@@ -231,13 +249,20 @@ export class PolygonDrawComponent implements OnInit, OnDestroy, OnChanges {
       createdAt: new Date().toISOString()
     };
 
+    console.log('PolygonDraw: Saving new favorite polygon:', newFavorite);
+
     // Add to favorites
     this.favoritePolygons.push(newFavorite);
     this.storageService.saveFavoritePolygons(this.favoritePolygons);
+    console.log('PolygonDraw: Updated favorites list:', this.favoritePolygons);
     
     // Set as current polygon
     this.currentPolygonId = newFavorite.id;
     this.storageService.saveCurrentPolygonId(newFavorite.id);
+    console.log('PolygonDraw: Set current polygon ID:', this.currentPolygonId);
+
+    // Emit event to notify parent component
+    this.favoriteSaved.emit(newFavorite);
 
     // Clear temporary drawing and reset state
     this.clearTempPolygon();

@@ -2,30 +2,43 @@
   position: fixed;
   z-index: 2000;
   padding: 10px;
-  pointer-events: auto;
+  pointer-events: none;
   max-width: 350px;
   width: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 /* Position variants */
 .toast-container.top-right {
   top: 20px;
   right: 20px;
+  align-items: flex-end;
 }
 
 .toast-container.top-left {
   top: 20px;
   left: 20px;
+  align-items: flex-start;
 }
 
 .toast-container.bottom-right {
   bottom: 20px;
   right: 20px;
+  align-items: flex-end;
 }
 
 .toast-container.bottom-left {
   bottom: 20px;
   left: 20px;
+  align-items: flex-start;
+}
+
+.toast {
+  pointer-events: auto;
+  max-width: 350px;
+  width: 100%;
 }
 
 .toast-content {
@@ -41,28 +54,28 @@
 }
 
 /* Toast types */
-.toast-container.success .toast-content {
+.toast.success .toast-content {
   border-left: 4px solid #52c41a;
 }
 
-.toast-container.error .toast-content {
+.toast.error .toast-content {
   border-left: 4px solid #ff4d4f;
 }
 
-.toast-container.info .toast-content {
+.toast.info .toast-content {
   border-left: 4px solid #1890ff;
 }
 
 /* Icons */
-.toast-container.success i:first-child {
+.toast.success i:first-child {
   color: #52c41a;
 }
 
-.toast-container.error i:first-child {
+.toast.error i:first-child {
   color: #ff4d4f;
 }
 
-.toast-container.info i:first-child {
+.toast.info i:first-child {
   color: #1890ff;
 }
 
@@ -74,41 +87,43 @@
 .toast-close {
   background: none;
   border: none;
-  cursor: pointer;
-  color: #999;
   padding: 0;
-  font-size: 12px;
+  margin: 0;
+  cursor: pointer;
+  font-size: 14px;
+  color: #999;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 20px;
   height: 20px;
   border-radius: 50%;
+  transition: background-color 0.2s;
 }
 
 .toast-close:hover {
-  background-color: #f0f0f0;
+  background-color: rgba(0, 0, 0, 0.05);
   color: #666;
 }
 
 /* Responsive adjustments */
 @media (max-width: 480px) {
   .toast-container {
-    max-width: calc(100vw - 40px);
-    width: calc(100vw - 40px);
+    max-width: 90%;
+    width: 90%;
   }
   
   .toast-container.top-right,
   .toast-container.top-left {
     top: 10px;
-    right: 10px;
-    left: 10px;
+    right: 5%;
+    left: 5%;
   }
   
   .toast-container.bottom-right,
   .toast-container.bottom-left {
     bottom: 10px;
-    right: 10px;
-    left: 10px;
+    right: 5%;
+    left: 5%;
   }
 } 
