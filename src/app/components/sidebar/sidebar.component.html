@@ -7,6 +7,7 @@
      [class.rotate-180]="sidebarSettings.rotation === 180"
      [class.rotate-270]="sidebarSettings.rotation === 270"
      [class.dragging]="isDragging"
+     [class.rotating]="isRotating"
      (mousedown)="dragStart($event)" 
      (touchstart)="dragStart($event)">
   
@@ -36,7 +37,8 @@
          [class.active]="item.isActive"
          (click)="['customize', 'reset', 'location', 'rotate'].includes(item.id) ? item.action() : selectTool(item.id)"
          [title]="item.title"
-         [attr.data-shortcut]="getShortcutForTool(item.id)">
+         [attr.data-shortcut]="getShortcutForTool(item.id)"
+         [attr.data-rotation]="item.id === 'rotate' ? sidebarSettings.rotation + '°' : null">
       <div class="map-control-icon">
         <i class="fa" [ngClass]="item.icon"></i>
       </div>
@@ -77,6 +79,12 @@
     <div class="option-group">
       <h4>Opacity</h4>
       <input type="range" min="0.5" max="1" step="0.1" [value]="sidebarSettings.opacity" (input)="setOpacity($any($event.target).value)">
+    </div>
+    
+    <div class="option-group">
+      <h4>Size</h4>
+      <input type="range" min="0.5" max="2" step="0.1" [value]="sidebarSettings.size" (input)="setSize($any($event.target).value)">
+      <div class="size-value">{{sidebarSettings.size | number:'1.1-1'}}x</div>
     </div>
     
     <button class="reset-button" (click)="resetPosition()">

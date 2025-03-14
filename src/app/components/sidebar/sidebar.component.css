@@ -16,7 +16,7 @@
     cursor: move;
     user-select: none;
     touch-action: none;
-    transition: all 0.3s ease;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease, box-shadow 0.3s ease;
     will-change: transform;
     backface-visibility: hidden;
     -webkit-font-smoothing: subpixel-antialiased;
@@ -49,12 +49,20 @@
     border: 2px solid rgba(77, 124, 254, 0.7);
 }
 
+/* Rotating state */
+.sidebar.rotating {
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    opacity: 0.95;
+    border: 2px solid rgba(77, 124, 254, 0.7);
+    pointer-events: none;
+}
+
 /* Counter-rotate icons to maintain original orientation */
 .sidebar .map-control-icon i,
 .sidebar .drag-handle i {
     display: inline-block;
     transform-origin: center;
-    transition: transform 0.3s ease;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 /* Apply counter-rotation based on sidebar rotation classes */
@@ -436,12 +444,64 @@
   width: 40px;
   height: 30px;
   font-size: 12px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.rotation-option::before {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-top: 2px solid #aaa;
+  border-right: 2px solid #aaa;
+  opacity: 0.5;
+  transition: all 0.2s ease;
+}
+
+.rotation-option:nth-child(1)::before {
+  transform: rotate(0deg);
+  top: 5px;
+  right: 5px;
+}
+
+.rotation-option:nth-child(2)::before {
+  transform: rotate(90deg);
+  top: 5px;
+  right: 5px;
+}
+
+.rotation-option:nth-child(3)::before {
+  transform: rotate(180deg);
+  top: 5px;
+  right: 5px;
+}
+
+.rotation-option:nth-child(4)::before {
+  transform: rotate(270deg);
+  top: 5px;
+  right: 5px;
+}
+
+.rotation-option:hover {
+  background-color: #f0f4ff;
+  border-color: #4d7cfe;
+}
+
+.rotation-option:hover::before {
+  border-color: #4d7cfe;
+  opacity: 1;
 }
 
 .rotation-option.active {
   background-color: #4d7cfe;
   color: white;
   border-color: #4d7cfe;
+}
+
+.rotation-option.active::before {
+  border-color: white;
+  opacity: 1;
 }
 
 .reset-button {
@@ -458,6 +518,63 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
+}
+
+/* Special styling for rotation icon */
+.map-control-item[title="Rotate Sidebar"] {
+    position: relative;
+}
+
+.map-control-item[title="Rotate Sidebar"] .map-control-icon i {
+    color: #4d7cfe;
+    transition: transform 0.3s ease;
+}
+
+.map-control-item[title="Rotate Sidebar"]:hover .map-control-icon i {
+    transform: rotate(45deg);
+    color: #3b82f6;
+}
+
+.map-control-item[title="Rotate Sidebar"]:active .map-control-icon i {
+    transform: rotate(90deg);
+}
+
+/* Display rotation angle */
+.map-control-item[title="Rotate Sidebar"]::after {
+    content: attr(data-rotation);
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #4d7cfe;
+    color: white;
+    font-size: 8px;
+    padding: 2px 4px;
+    border-radius: 10px;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.2s ease;
+}
+
+.map-control-item[title="Rotate Sidebar"]:hover::after {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Pulsing effect for rotation button when sidebar is rotating */
+.rotating .map-control-item[title="Rotate Sidebar"] .map-control-icon i {
+    animation: rotate-pulse 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes rotate-pulse {
+    0% {
+        transform: rotate(0deg) scale(1);
+    }
+    50% {
+        transform: rotate(180deg) scale(1.2);
+    }
+    100% {
+        transform: rotate(360deg) scale(1);
+    }
 }
 
 /* Add a special indicator for data sending mode */
@@ -494,4 +611,20 @@
   100% {
     box-shadow: 0 0 0 0 rgba(66, 99, 235, 0);
   }
+}
+
+.option-group input[type="range"] {
+  width: 100%;
+  margin: 5px 0;
+}
+
+.size-value {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 5px;
+}
+
+.theme-dark .size-value {
+  color: #ccc;
 }

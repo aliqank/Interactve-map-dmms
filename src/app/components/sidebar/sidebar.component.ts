@@ -16,7 +16,7 @@ export enum SidebarIcon {
   LOCATION = 'fa-location-arrow',
   CUSTOMIZE = 'fa-palette',
   RESET = 'fa-undo',
-  ROTATE = 'fa-sync-alt',
+  ROTATE = 'fa-redo-alt',
   DRAG = 'fa-grip-lines',
   CLOSE = 'fa-times'
 }
@@ -32,6 +32,7 @@ interface SidebarSettings {
   theme: 'light' | 'dark';
   expanded: boolean;
   rotation: number;
+  size: number;
 }
 
 export interface MapControls {
@@ -78,6 +79,9 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
   dragOffset = { x: 0, y: 0 };
   private eventCatcher: HTMLElement | null = null;
   
+  // Rotation state
+  isRotating = false;
+  
   // Bound event handlers
   private boundOnDrag: (event: MouseEvent | TouchEvent) => void;
   private boundStopDrag: () => void;
@@ -93,7 +97,8 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
     opacity: 1,
     theme: 'light',
     expanded: false,
-    rotation: 0
+    rotation: 0,
+    size: 1
   };
   
   // Predefined rotation angles
@@ -298,23 +303,36 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
   
   // Apply all current settings to the sidebar element
   applySettings(): void {
+    if (!this.sidebarElement) return;
+    
     const sidebar = this.sidebarElement.nativeElement;
     
-    // Position
-    this.setTranslate(this.sidebarSettings.position.x, this.sidebarSettings.position.y);
+    // Apply theme class
+    if (this.sidebarSettings.theme === 'light') {
+      sidebar.classList.add('theme-light');
+      sidebar.classList.remove('theme-dark');
+    } else {
+      sidebar.classList.add('theme-dark');
+      sidebar.classList.remove('theme-light');
+    }
     
-    // Appearance
-    sidebar.style.opacity = this.sidebarSettings.opacity.toString();
+    // Apply rotation
+    sidebar.classList.remove('rotate-0', 'rotate-90', 'rotate-180', 'rotate-270');
+    sidebar.classList.add(`rotate-${this.sidebarSettings.rotation}`);
     
-    // Theme
-    sidebar.classList.remove('theme-light', 'theme-dark');
-    sidebar.classList.add(`theme-${this.sidebarSettings.theme}`);
+    // Apply expanded state
+    this.sidebarSettings.expanded ? 
+      sidebar.classList.add('expanded') : 
+      sidebar.classList.remove('expanded');
     
-    // Expanded state
-    sidebar.classList.toggle('expanded', this.sidebarSettings.expanded);
+    // Apply opacity
+    sidebar.style.opacity = this.sidebarSettings.opacity;
     
-    // Rotation
-    this.setRotation(this.sidebarSettings.rotation);
+    // Apply transform with position, rotation and scale
+    // Use requestAnimationFrame for smoother transitions
+    requestAnimationFrame(() => {
+      sidebar.style.transform = `translate3d(${this.sidebarSettings.position.x}px, ${this.sidebarSettings.position.y}px, 0) rotate(${this.sidebarSettings.rotation}deg) scale(${this.sidebarSettings.size})`;
+    });
     
     // Save settings
     this.saveSettings();
@@ -437,93 +455,90 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
   }
   
   setTranslate(xPos: number, yPos: number): void {
+    if (!this.sidebarElement) return;
+    
+    // Update position in settings
+    this.sidebarSettings.position = { x: xPos, y: yPos };
+    
+    // Apply transform with translation, rotation and scale
     const sidebar = this.sidebarElement.nativeElement;
     
-    // Update the position in the settings object
-    this.sidebarSettings.position.x = xPos;
-    this.sidebarSettings.position.y = yPos;
+    // Use requestAnimationFrame for smoother transitions
+    requestAnimationFrame(() => {
+      sidebar.style.transform = `translate3d(${xPos}px, ${yPos}px, 0) rotate(${this.sidebarSettings.rotation}deg) scale(${this.sidebarSettings.size})`;
+    });
     
-    // For horizontal orientations (90° or 270°), adjust the transform origin
-    sidebar.style.transformOrigin = 'top left';
+    // Ensure we're not exceeding viewport boundaries
+    this.constrainToViewport();
+  }
+  
+  /**
+   * Ensures the sidebar stays within the viewport boundaries
+   */
+  private constrainToViewport(): void {
+    if (!this.sidebarElement) return;
     
-    // Apply the transform with position and rotation
-    sidebar.style.transform = `translate3d(${xPos}px, ${yPos}px, 0) rotate(${this.sidebarSettings.rotation}deg)`;
+    const sidebar = this.sidebarElement.nativeElement;
+    const rect = sidebar.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
     
-    // Save the updated position to localStorage
-    this.saveSettings();
+    // Constrain horizontally
+    if (rect.right > viewportWidth) {
+      const newX = this.sidebarSettings.position.x - (rect.right - viewportWidth) - 10;
+      this.sidebarSettings.position.x = Math.max(0, newX);
+    }
+    
+    // Constrain vertically
+    if (rect.bottom > viewportHeight) {
+      const newY = this.sidebarSettings.position.y - (rect.bottom - viewportHeight) - 10;
+      this.sidebarSettings.position.y = Math.max(0, newY);
+    }
+    
+    // Apply the constrained position with rotation and scale
+    requestAnimationFrame(() => {
+      sidebar.style.transform = `translate3d(${this.sidebarSettings.position.x}px, ${this.sidebarSettings.position.y}px, 0) rotate(${this.sidebarSettings.rotation}deg) scale(${this.sidebarSettings.size})`;
+    });
   }
   
   // Set rotation directly
   setRotation(degrees: number): void {
-    const sidebar = this.sidebarElement.nativeElement;
+    if (!this.sidebarElement) return;
     
-    // Store the previous rotation to detect orientation changes
-    const previousRotation = this.sidebarSettings.rotation;
-    const wasHorizontal = previousRotation === 90 || previousRotation === 270;
-    const willBeHorizontal = degrees === 90 || degrees === 270;
-    
-    // Update rotation value
+    // Update rotation in settings
     this.sidebarSettings.rotation = degrees;
     
-    // Apply rotation classes for icon counter-rotation
+    const sidebar = this.sidebarElement.nativeElement;
+    
+    // Set rotating state
+    this.isRotating = true;
+    
+    // Remove all rotation classes
     sidebar.classList.remove('rotate-0', 'rotate-90', 'rotate-180', 'rotate-270');
+    
+    // Add the appropriate rotation class
     sidebar.classList.add(`rotate-${degrees}`);
     
-    // If changing between horizontal and vertical orientations, adjust position
-    // only if it would make the sidebar completely inaccessible
-    if (wasHorizontal !== willBeHorizontal) {
-      // Get sidebar dimensions
-      const sidebarWidth = sidebar.offsetWidth || 42;
-      const sidebarHeight = sidebar.offsetHeight || 300;
+    // Apply transform with both rotation, translation and scale
+    // Use requestAnimationFrame to ensure smooth transition
+    requestAnimationFrame(() => {
+      sidebar.style.transform = `translate3d(${this.sidebarSettings.position.x}px, ${this.sidebarSettings.position.y}px, 0) rotate(${degrees}deg) scale(${this.sidebarSettings.size})`;
       
-      // Current position
-      let { x, y } = this.sidebarSettings.position;
-      
-      // Minimal safety margin
-      const safetyMargin = 5;
-      
-      // Only adjust position if the sidebar would be completely off-screen
-      if (willBeHorizontal) {
-        // Vertical to horizontal
-        if (x < -sidebarHeight + safetyMargin) {
-          x = -sidebarHeight + safetyMargin;
-        } else if (x > window.innerWidth - safetyMargin) {
-          x = window.innerWidth - safetyMargin;
-        }
-        
-        if (y < -sidebarWidth + safetyMargin) {
-          y = -sidebarWidth + safetyMargin;
-        } else if (y > window.innerHeight - safetyMargin) {
-          y = window.innerHeight - safetyMargin;
-        }
-      } else {
-        // Horizontal to vertical
-        if (x < -sidebarWidth + safetyMargin) {
-          x = -sidebarWidth + safetyMargin;
-        } else if (x > window.innerWidth - safetyMargin) {
-          x = window.innerWidth - safetyMargin;
-        }
-        
-        if (y < -sidebarHeight + safetyMargin) {
-          y = -sidebarHeight + safetyMargin;
-        } else if (y > window.innerHeight - safetyMargin) {
-          y = window.innerHeight - safetyMargin;
-        }
-      }
-      
-      // Update position if needed
-      if (x !== this.sidebarSettings.position.x || y !== this.sidebarSettings.position.y) {
-        this.sidebarSettings.position = { x, y };
-      }
-    }
-    
-    // Apply the transform with rotation
-    this.setTranslate(this.sidebarSettings.position.x, this.sidebarSettings.position.y);
+      // Save settings after a short delay to ensure the animation completes
+      setTimeout(() => {
+        this.saveSettings();
+        this.isRotating = false;
+      }, 400);
+    });
   }
   
   // Rotate by a specific angle increment
   rotateBy(degrees: number): void {
-    console.log('rotateBy called with degrees:', degrees);
+    // Prevent multiple rapid rotations
+    if (this.isRotating) return;
+    
+    this.isRotating = true;
+    
     let newRotation = (this.sidebarSettings.rotation + degrees) % 360;
     if (newRotation < 0) newRotation += 360;
     
@@ -531,7 +546,11 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
     newRotation = Math.round(newRotation / 90) * 90;
     
     this.setRotation(newRotation);
-    this.saveSettings();
+    
+    // Reset rotation lock after animation completes
+    setTimeout(() => {
+      this.isRotating = false;
+    }, 400);
   }
   
   // Toggle expanded state
@@ -548,21 +567,37 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
   
   // Set opacity
   setOpacity(opacity: string | number): void {
-    const opacityValue = typeof opacity === 'string' ? parseFloat(opacity) : opacity;
-    this.sidebarSettings.opacity = opacityValue;
+    this.sidebarSettings.opacity = typeof opacity === 'string' ? parseFloat(opacity) : opacity;
+    this.applySettings();
+    this.saveSettings();
+  }
+  
+  /**
+   * Set the toolbar size
+   * @param size Size multiplier (0.5 to 2.0)
+   */
+  setSize(size: string | number): void {
+    this.sidebarSettings.size = typeof size === 'string' ? parseFloat(size) : size;
     this.applySettings();
     this.saveSettings();
   }
   
   // Reset position to default
   resetPosition(): void {
+    // Reset to default position
     this.sidebarSettings.position = { x: 20, y: 20 };
-    this.sidebarSettings.opacity = 1;
-    this.sidebarSettings.theme = 'light';
-    this.sidebarSettings.expanded = false;
+    
+    // Reset other appearance settings
     this.sidebarSettings.rotation = 0;
+    this.sidebarSettings.opacity = 1;
+    this.sidebarSettings.size = 1;
+    
+    // Apply the reset settings
     this.applySettings();
-    localStorage.removeItem('sidebarSettings');
+    this.saveSettings();
+    
+    // Close the customization panel
+    this.showCustomizationPanel = false;
   }
   
   // Toggle customization panel
