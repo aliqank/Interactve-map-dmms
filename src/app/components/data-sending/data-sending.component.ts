@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnInit, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { timeout, TimeoutError } from 'rxjs';
@@ -14,7 +14,7 @@ import { ToastService } from '../../services/toast.service';
   templateUrl: './data-sending.component.html',
   styleUrls: ['./data-sending.component.css']
 })
-export class DataSendingComponent implements OnInit, OnDestroy {
+export class DataSendingComponent implements OnInit, OnDestroy, OnChanges {
   @Input() isVisible = false;
   @Input() map!: L.Map;
   @Input() apiSettings!: ApiSettings;
@@ -37,6 +37,29 @@ export class DataSendingComponent implements OnInit, OnDestroy {
     this.dataSendingMode = this.isVisible;
     if (this.dataSendingMode) {
       this.activateDataSendingMode();
+    }
+  }
+  
+  ngOnChanges(changes: SimpleChanges): void {
+    // React to changes in the isVisible input
+    if (changes['isVisible'] && !changes['isVisible'].firstChange) {
+      const currentValue = changes['isVisible'].currentValue;
+      const previousValue = changes['isVisible'].previousValue;
+      
+      if (currentValue !== previousValue) {
+        this.dataSendingMode = currentValue;
+        
+        if (this.dataSendingMode) {
+          this.activateDataSendingMode();
+        } else {
+          this.deactivateDataSendingMode();
+          this.cancelAllDataSendingRequests();
+          
+          if (this.map) {
+            this.map.closePopup();
+          }
+        }
+      }
     }
   }
   

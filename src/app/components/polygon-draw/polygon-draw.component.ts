@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
@@ -14,7 +14,7 @@ import { ModalComponent } from '../shared/modal/modal.component';
   templateUrl: './polygon-draw.component.html',
   styleUrls: ['./polygon-draw.component.css']
 })
-export class PolygonDrawComponent implements OnInit, OnDestroy {
+export class PolygonDrawComponent implements OnInit, OnDestroy, OnChanges {
   @Input() isVisible = false;
   @Input() map!: L.Map;
   @Output() visibilityChange = new EventEmitter<boolean>();
@@ -45,6 +45,31 @@ export class PolygonDrawComponent implements OnInit, OnDestroy {
     const savedCoordinates = this.storageService.loadPolygonCoordinates();
     if (savedCoordinates) {
       this.coordinatesInput = savedCoordinates;
+    }
+    
+    // Initialize with current visibility state
+    this.drawPolygonMode = this.isVisible;
+    if (this.drawPolygonMode) {
+      this.activatePolygonDrawMode();
+    }
+  }
+  
+  ngOnChanges(changes: SimpleChanges): void {
+    // React to changes in the isVisible input
+    if (changes['isVisible'] && !changes['isVisible'].firstChange) {
+      const currentValue = changes['isVisible'].currentValue;
+      const previousValue = changes['isVisible'].previousValue;
+      
+      if (currentValue !== previousValue) {
+        this.drawPolygonMode = currentValue;
+        
+        if (this.drawPolygonMode) {
+          this.activatePolygonDrawMode();
+        } else {
+          this.deactivatePolygonDrawMode();
+          this.clearTempPolygon();
+        }
+      }
     }
   }
 

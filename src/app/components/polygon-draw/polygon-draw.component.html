@@ -3,7 +3,7 @@
   [title]="'Draw Polygon'"
   [icon]="'fa-draw-polygon'"
   [modalType]="'polygon'"
-  (close)="closeModal()"
+  (close)="togglePolygonDrawing()"
 >
   <div modal-content>
     <div *ngIf="!showPolygonNameInput">
