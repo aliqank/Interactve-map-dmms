@@ -1,0 +1,38 @@
+<app-modal 
+  [isVisible]="isVisible"
+  [title]="'Favorites'"
+  [icon]="'fa-star'"
+  (visibilityChange)="toggleVisibility()"
+  modalType="favorites">
+  
+  <div *ngIf="favoritePolygons.length === 0" class="no-favorites">
+    <i class="fa fa-star-o"></i>
+    <p>No favorites yet</p>
+  </div>
+  
+  <div *ngIf="favoritePolygons.length > 0" class="favorites-list">
+    <div *ngFor="let favorite of favoritePolygons" 
+         class="favorite-item" 
+         [class.active]="currentPolygonId === favorite.id"
+         (click)="loadFavoritePolygon(favorite)">
+      <div class="favorite-info">
+        <h4>
+          {{ favorite.name }}
+          <span *ngIf="currentPolygonId === favorite.id" class="current-badge">
+            <i class="fa fa-check"></i>
+          </span>
+        </h4>
+        <small>{{ favorite.createdAt | date:'short' }}</small>
+      </div>
+      <div class="favorite-actions">
+        <button class="favorite-action-button" (click)="loadFavoritePolygon(favorite)" title="Load">
+          <i class="fa fa-map-marker"></i>
+        </button>
+        <button class="favorite-action-button delete" (click)="deleteFavoritePolygon(favorite, $event)" title="Delete">
+          <i class="fa fa-trash"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+  
+</app-modal> 

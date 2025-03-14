@@ -231,38 +231,13 @@
   </div>
   
   <!-- Favorites Control Panel -->
-  <div *ngIf="showFavoritesControl" class="modal-panel favorites-modal" #favoritesModal (mousedown)="startModalDrag($event, favoritesModal)" (touchstart)="startModalDrag($event, favoritesModal)">
-    <div class="modal-header">
-      <h3><i class="fa fa-star"></i> Favorites</h3>
-      <button class="modal-close" (click)="toggleFavoritesControl()">
-        <i class="fa fa-times"></i>
-      </button>
-    </div>
-    <div class="modal-content">
-      <div *ngIf="favoritePolygons.length === 0" class="no-favorites">
-        <i class="fa fa-star-o"></i>
-        <p>No favorites yet</p>
-      </div>
-      <div *ngIf="favoritePolygons.length > 0" class="favorites-list">
-        <div *ngFor="let favorite of favoritePolygons" class="favorite-item" [class.active]="currentPolygonId === favorite.id">
-          <div class="favorite-info">
-            <h4>
-              {{ favorite.name }}
-              <span *ngIf="currentPolygonId === favorite.id" class="current-badge">
-                <i class="fa fa-check"></i>
-              </span>
-            </h4>
-            <small>{{ favorite.createdAt | date:'short' }}</small>
-          </div>
-          <div class="favorite-actions">
-            <button class="favorite-action-button" (click)="loadFavoritePolygon(favorite)" title="Load">
-              <i class="fa fa-map-marker-alt"></i>
-            </button>
-            <button class="favorite-action-button delete" (click)="deleteFavoritePolygon(favorite)" title="Delete">
-              <i class="fa fa-trash"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <app-favorites
+    [isVisible]="showFavoritesControl"
+    [favoritePolygons]="favoritePolygons"
+    [currentPolygonId]="currentPolygonId"
+    (visibilityChange)="toggleFavoritesControl()"
+    (loadFavorite)="loadFavoritePolygon($event)"
+    (deleteFavorite)="deleteFavoritePolygon($event)">
+  </app-favorites>
+  
+  <!-- Data Sending Control Panel -->

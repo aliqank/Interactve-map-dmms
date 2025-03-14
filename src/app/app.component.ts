@@ -8,17 +8,29 @@ import { debounceTime, distinctUntilChanged, Subject, timeout, TimeoutError } fr
 import { GeoJsonControlComponent } from './components/geojson-control/geojson-control.component';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { MeasurementModalComponent } from './components/measurement-modal/measurement-modal.component';
-
-interface FavoritePolygon {
-  id: string;
-  name: string;
-  coordinates: { lat: number; lng: number; }[];
-  createdAt: string;
-}
+import { LayerControlComponent } from './components/layer-control/layer-control.component';
+import { SearchComponent } from './components/search/search.component';
+import { MeasurementComponent } from './components/measurement/measurement.component';
+import { PolygonDrawComponent } from './components/polygon-draw/polygon-draw.component';
+import { FavoritesComponent } from './components/favorites/favorites.component';
+import { StorageService, FavoritePolygon } from './services/storage.service';
+import { ToastService } from './services/toast.service';
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule, CommonModule, HttpClientModule, GeoJsonControlComponent, SidebarComponent, MeasurementModalComponent],
+  imports: [
+    FormsModule, 
+    CommonModule, 
+    HttpClientModule, 
+    GeoJsonControlComponent, 
+    SidebarComponent, 
+    MeasurementModalComponent,
+    LayerControlComponent,
+    SearchComponent,
+    MeasurementComponent,
+    PolygonDrawComponent,
+    FavoritesComponent
+  ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
   standalone: true
@@ -133,7 +145,12 @@ export class AppComponent implements AfterViewInit, OnInit {
   // Add these properties to the class
   private activeRequests: { [key: string]: { subscription: any, popup: L.Popup, interval: any } } = {};
 
-  constructor(private http: HttpClient, private renderer: Renderer2) {
+  constructor(
+    private http: HttpClient, 
+    private renderer: Renderer2,
+    private storageService: StorageService,
+    private toastService: ToastService
+  ) {
     // Set up search with debounce
     this.searchSubject.pipe(
       debounceTime(500),
@@ -165,43 +182,28 @@ export class AppComponent implements AfterViewInit, OnInit {
     });
     
     // Load saved polygon coordinates from localStorage if available
-    const savedPolygon = localStorage.getItem('polygonCoordinates');
-    if (savedPolygon) {
-      try {
-        this.coordinatesInput = JSON.parse(savedPolygon);
-      } catch (error) {
-        console.error('Error parsing saved polygon coordinates:', error);
-      }
+    const savedCoordinates = this.storageService.loadPolygonCoordinates();
+    if (savedCoordinates) {
+      this.coordinatesInput = savedCoordinates;
     }
     
     // Load saved map layer from localStorage if available
-    const savedLayer = localStorage.getItem('selectedMapLayer');
+    const savedLayer = this.storageService.loadSelectedMapLayer();
     if (savedLayer) {
       this.selectedLayer = savedLayer;
     }
     
     // Load saved API settings from localStorage if available
-    const savedApiSettings = localStorage.getItem('apiSettings');
+    const savedApiSettings = this.storageService.loadApiSettings();
     if (savedApiSettings) {
-      try {
-        this.apiSettings = JSON.parse(savedApiSettings);
-      } catch (error) {
-        console.error('Error parsing saved API settings:', error);
-      }
+      this.apiSettings = savedApiSettings;
     }
 
     // Load favorite polygons from localStorage
-    const savedFavorites = localStorage.getItem('favoritePolygons');
-    if (savedFavorites) {
-      try {
-        this.favoritePolygons = JSON.parse(savedFavorites);
-      } catch (error) {
-        console.error('Error parsing saved favorite polygons:', error);
-      }
-    }
+    this.favoritePolygons = this.storageService.loadFavoritePolygons();
 
     // Load current polygon ID from localStorage and set its coordinates
-    const savedCurrentPolygonId = localStorage.getItem('currentPolygonId');
+    const savedCurrentPolygonId = this.storageService.loadCurrentPolygonId();
     if (savedCurrentPolygonId) {
       this.currentPolygonId = savedCurrentPolygonId;
       // Find the matching favorite polygon
@@ -508,7 +510,7 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   savePolygonAsFavorite(): void {
     if (!this.newPolygonName.trim()) {
-      this.showToast('Please enter a name for the polygon', 'error');
+      this.toastService.error('Please enter a name for the polygon');
       return;
     }
 
@@ -520,9 +522,9 @@ export class AppComponent implements AfterViewInit, OnInit {
     };
 
     this.favoritePolygons.push(newFavorite);
-    localStorage.setItem('favoritePolygons', JSON.stringify(this.favoritePolygons));
+    this.storageService.saveFavoritePolygons(this.favoritePolygons);
     this.currentPolygonId = newFavorite.id;
-    localStorage.setItem('currentPolygonId', newFavorite.id);
+    this.storageService.saveCurrentPolygonId(newFavorite.id);
 
     // Clear temporary drawing and reset state
     this.clearTempPolygon();
@@ -533,15 +535,15 @@ export class AppComponent implements AfterViewInit, OnInit {
 
     // Update the map borders
     this.updateBorders();
-    this.showToast('Polygon saved as favorite!', 'success');
+    this.toastService.success('Polygon saved as favorite!');
   }
 
   loadFavoritePolygon(favorite: FavoritePolygon): void {
     this.coordinatesInput = [...favorite.coordinates];
     this.currentPolygonId = favorite.id;
-    localStorage.setItem('currentPolygonId', favorite.id);
+    this.storageService.saveCurrentPolygonId(favorite.id);
     this.updateBorders();
-    this.showToast(`Loaded polygon: ${favorite.name}`, 'success');
+    this.toastService.success(`Loaded polygon: ${favorite.name}`);
   }
 
   deleteFavoritePolygon(favorite: FavoritePolygon): void {
@@ -549,13 +551,13 @@ export class AppComponent implements AfterViewInit, OnInit {
     if (this.currentPolygonId === favorite.id) {
       this.coordinatesInput = [];
       this.currentPolygonId = null;
-      localStorage.removeItem('currentPolygonId');
+      this.storageService.saveCurrentPolygonId(null);
       this.updateBorders();
     }
 
     this.favoritePolygons = this.favoritePolygons.filter(p => p.id !== favorite.id);
-    localStorage.setItem('favoritePolygons', JSON.stringify(this.favoritePolygons));
-    this.showToast(`Deleted polygon: ${favorite.name}`, 'success');
+    this.storageService.saveFavoritePolygons(this.favoritePolygons);
+    this.toastService.success(`Deleted polygon: ${favorite.name}`);
   }
 
   // Change the map layer
@@ -719,31 +721,14 @@ export class AppComponent implements AfterViewInit, OnInit {
   
   // Toast notification system
   private showToast(message: string, type: 'success' | 'error' | 'info' = 'info'): void {
-    // Create toast element
-    const toast = document.createElement('div');
-    toast.className = `map-toast ${type}`;
-    toast.innerHTML = `
-      <div class="toast-content">
-        <i class="fa ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
-        <span>${message}</span>
-      </div>
-    `;
-    
-    // Add to document
-    document.body.appendChild(toast);
-    
-    // Trigger animation
-    setTimeout(() => {
-      toast.classList.add('show');
-    }, 10);
-    
-    // Remove after delay
-    setTimeout(() => {
-      toast.classList.remove('show');
-      setTimeout(() => {
-        document.body.removeChild(toast);
-      }, 300);
-    }, 3000);
+    // Use the ToastService instead of creating DOM elements directly
+    if (type === 'success') {
+      this.toastService.success(message);
+    } else if (type === 'error') {
+      this.toastService.error(message);
+    } else {
+      this.toastService.info(message);
+    }
   }
 
   // Update borders method
@@ -780,7 +765,7 @@ export class AppComponent implements AfterViewInit, OnInit {
 
       if (matchingFavorite) {
         this.currentPolygonId = matchingFavorite.id;
-        localStorage.setItem('currentPolygonId', matchingFavorite.id);
+        this.storageService.saveCurrentPolygonId(matchingFavorite.id);
         this.showToast(`Selected polygon: ${matchingFavorite.name}`, 'success');
         this.updateBorders(); // Refresh to update colors
       }
