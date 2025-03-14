@@ -103,7 +103,7 @@
 8. ✅ Update AppComponent to use LayerControlComponent
 9. ✅ Update AppComponent to use SearchComponent
 10. ✅ Update AppComponent to use MeasurementComponent
-11. ☐ Update AppComponent to use PolygonDrawComponent
+11. ✅ Update AppComponent to use PolygonDrawComponent
 12. ☐ Update AppComponent to use FavoritesComponent
 13. ☐ Clean up CSS and ensure consistent styling
 14. ☐ Add tests for the new components

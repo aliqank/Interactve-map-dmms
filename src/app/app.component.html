@@ -39,58 +39,7 @@
   </div>
   
   <!-- Polygon Control Panel -->
-  <div *ngIf="showPolygonControl" class="modal-panel polygon-modal" #polygonModal (mousedown)="startModalDrag($event, polygonModal)" (touchstart)="startModalDrag($event, polygonModal)">
-    <div class="modal-header">
-      <h3><i class="fa fa-draw-polygon"></i> Draw Polygon</h3>
-      <button class="modal-close" (click)="togglePolygonControl()">
-        <i class="fa fa-times"></i>
-      </button>
-    </div>
-    
-    <div class="modal-content">
-      <div *ngIf="!showPolygonNameInput">
-        <div class="polygon-instructions">
-          <i class="fa fa-info-circle"></i>
-          <span>Click on the map to add points. You need at least 3 points to create a polygon.</span>
-        </div>
-        
-        <div class="polygon-points-counter">
-          <span class="counter-label">Points:</span>
-          <span class="counter-value">{{ tempPolygonPoints.length }}</span>
-          <span class="counter-min">(min 3)</span>
-        </div>
-        
-        <div class="polygon-actions">
-          <button (click)="finishPolygonDrawing()" 
-                  [disabled]="tempPolygonPoints.length < 3"
-                  class="polygon-action-button finish-button">
-            <i class="fa fa-check"></i> Finish
-          </button>
-          <button (click)="cancelPolygonDrawing()" class="polygon-action-button cancel-button">
-            <i class="fa fa-times"></i> Cancel
-          </button>
-        </div>
-      </div>
-      
-      <div *ngIf="showPolygonNameInput" class="polygon-name-form">
-        <div class="setting-label">
-          <i class="fa fa-tag"></i> Polygon Name
-        </div>
-        <div class="polygon-name-input-wrapper">
-          <input type="text" 
-                 [(ngModel)]="newPolygonName" 
-                 placeholder="Enter polygon name"
-                 class="setting-input"
-                 autofocus>
-        </div>
-        <button (click)="savePolygonAsFavorite()" 
-                [disabled]="!newPolygonName.trim()"
-                class="save-polygon-button">
-          <i class="fa fa-save"></i> Save Polygon
-        </button>
-      </div>
-    </div>
-  </div>
+  <app-polygon-draw></app-polygon-draw>
   
   <!-- Settings Control Panel -->
   <app-settings

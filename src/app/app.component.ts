@@ -42,10 +42,6 @@ import { MapService } from './services/map.service';
 export class AppComponent implements AfterViewInit, OnInit {
   public map!: L.Map;
   private locationMarker: L.Marker | null = null;
-  private drawPolygonMode = false;
-  public tempPolygonPoints: L.LatLng[] = [];
-  private tempPolygonMarkers: L.Marker[] = [];
-  private tempPolygon: L.Polygon | null = null;
   
   // UI control properties
   showLayerControl = false;
@@ -61,8 +57,6 @@ export class AppComponent implements AfterViewInit, OnInit {
   
   // Favorite polygons
   favoritePolygons: FavoritePolygon[] = [];
-  newPolygonName = '';
-  showPolygonNameInput = false;
   currentPolygonId: string | null = null;
   
   // API Settings
@@ -213,6 +207,16 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.showSettingsControl = false;
   }
   
+  toggleMeasureControl(): void {
+    this.showMeasureControl = !this.showMeasureControl;
+    this.showLayerControl = false;
+    this.showSearchControl = false;
+    this.showGeoJsonControl = false;
+    this.showPolygonControl = false;
+    this.showDataSendingControl = false;
+    this.showSettingsControl = false;
+  }
+  
   toggleGeoJsonControl(): void {
     this.showGeoJsonControl = !this.showGeoJsonControl;
     this.showLayerControl = false;
@@ -221,10 +225,6 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.showPolygonControl = false;
     this.showDataSendingControl = false;
     this.showSettingsControl = false;
-    
-    if (this.drawPolygonMode) {
-      this.cancelPolygonDrawing();
-    }
   }
 
   togglePolygonControl(): void {
@@ -235,11 +235,6 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.showGeoJsonControl = false;
     this.showDataSendingControl = false;
     this.showSettingsControl = false;
-    
-    this.drawPolygonMode = this.showPolygonControl;
-    if (!this.drawPolygonMode) {
-      this.cancelPolygonDrawing();
-    }
   }
 
   toggleDataSendingControl(): void {
@@ -292,7 +287,6 @@ export class AppComponent implements AfterViewInit, OnInit {
     console.log('Tool selected:', toolId);
     
     // Reset all active modes
-    this.drawPolygonMode = false;
     this.dataSendingMode = false;
     
     // Hide all control panels
@@ -320,7 +314,6 @@ export class AppComponent implements AfterViewInit, OnInit {
       case 'rectangle':
         // Rectangle tool functionality
         this.showPolygonControl = true;
-        this.drawPolygonMode = true;
         break;
       case 'text':
         // Text tool functionality
@@ -376,93 +369,6 @@ export class AppComponent implements AfterViewInit, OnInit {
       localStorage.setItem('apiSettings', JSON.stringify(this.apiSettings));
       this.showToast('Settings saved successfully', 'success');
     }
-  }
-
-  startPolygonDrawing(): void {
-    this.drawPolygonMode = true;
-    this.tempPolygonPoints = [];
-    this.clearTempPolygon();
-    
-    // Show a toast notification
-    this.showToast('Click on the map to add polygon points');
-  }
-
-  cancelPolygonDrawing(): void {
-    this.drawPolygonMode = false;
-    this.showPolygonControl = false;
-    this.clearTempPolygon();
-    this.showToast('Polygon drawing cancelled', 'info');
-  }
-
-  clearTempPolygon(): void {
-    if (this.tempPolygon) {
-      this.map.removeLayer(this.tempPolygon);
-      this.tempPolygon = null;
-    }
-    this.tempPolygonMarkers.forEach(marker => this.map.removeLayer(marker));
-    this.tempPolygonMarkers = [];
-    this.tempPolygonPoints = [];
-  }
-
-  updateTempPolygon(): void {
-    if (this.tempPolygonPoints.length < 2) return;
-
-    if (this.tempPolygon) {
-      this.map.removeLayer(this.tempPolygon);
-    }
-
-    this.tempPolygon = L.polygon(this.tempPolygonPoints, {
-      color: '#4263eb',
-      weight: 2,
-      fillOpacity: 0.2
-    }).addTo(this.map);
-  }
-
-  finishPolygonDrawing(): void {
-    if (this.tempPolygonPoints.length < 3) {
-      this.showToast('Please select at least 3 points to create a polygon', 'error');
-      return;
-    }
-
-    // Update coordinatesInput with the new polygon points
-    this.coordinatesInput = this.tempPolygonPoints.map(point => ({
-      lat: point.lat,
-      lng: point.lng
-    }));
-
-    // Show polygon name input
-    this.showPolygonNameInput = true;
-    this.showToast('Enter a name for your polygon to save it as favorite', 'info');
-  }
-
-  savePolygonAsFavorite(): void {
-    if (!this.newPolygonName.trim()) {
-      this.toastService.error('Please enter a name for the polygon');
-      return;
-    }
-
-    const newFavorite: FavoritePolygon = {
-      id: Date.now().toString(),
-      name: this.newPolygonName.trim(),
-      coordinates: [...this.coordinatesInput],
-      createdAt: new Date().toISOString()
-    };
-
-    this.favoritePolygons.push(newFavorite);
-    this.storageService.saveFavoritePolygons(this.favoritePolygons);
-    this.currentPolygonId = newFavorite.id;
-    this.storageService.saveCurrentPolygonId(newFavorite.id);
-
-    // Clear temporary drawing and reset state
-    this.clearTempPolygon();
-    this.drawPolygonMode = false;
-    this.showPolygonControl = false;
-    this.showPolygonNameInput = false;
-    this.newPolygonName = '';
-
-    // Update the map borders
-    this.updateBorders();
-    this.toastService.success('Polygon saved as favorite!');
   }
 
   loadFavoritePolygon(favorite: FavoritePolygon): void {
@@ -582,12 +488,6 @@ export class AppComponent implements AfterViewInit, OnInit {
     
     // Add click event listener to display coordinates and send to API
     this.map.on('click', (e: L.LeafletMouseEvent) => {
-      // If in polygon drawing mode, handle polygon point addition
-      if (this.drawPolygonMode) {
-        this.handleMapClickForPolygon(e);
-        return;
-      }
-      
       const lat = e.latlng.lat;
       const lng = e.latlng.lng;
       
@@ -612,35 +512,6 @@ export class AppComponent implements AfterViewInit, OnInit {
     }, 1000);
   }
 
-  private handleMapClickForPolygon(e: L.LeafletMouseEvent): void {
-    if (!this.drawPolygonMode) return;
-    
-    const lat = e.latlng.lat;
-    const lng = e.latlng.lng;
-    
-    // Add the point to the polygon points array
-    this.tempPolygonPoints.push(e.latlng);
-    
-    // Create marker at click location
-    const marker = L.marker([lat, lng], {
-      icon: L.icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-      })
-    }).addTo(this.map);
-    
-    this.tempPolygonMarkers.push(marker);
-    
-    // Update the polygon visualization
-    this.updateTempPolygon();
-    
-    // Don't send coordinates to API when in polygon drawing mode
-  }
-  
   // Setup modal drag functionality
   private setupModalDragListeners(): void {
     // Global mouse/touch move event
