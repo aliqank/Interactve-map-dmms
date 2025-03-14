@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { timeout, TimeoutError } from 'rxjs';
@@ -14,7 +14,7 @@ import { ToastService } from '../../services/toast.service';
   templateUrl: './data-sending.component.html',
   styleUrls: ['./data-sending.component.css']
 })
-export class DataSendingComponent {
+export class DataSendingComponent implements OnInit, OnDestroy {
   @Input() isVisible = false;
   @Input() map!: L.Map;
   @Input() apiSettings!: ApiSettings;
@@ -25,11 +25,25 @@ export class DataSendingComponent {
   
   private activeRequests: { [key: string]: { subscription: any, popup: L.Popup, interval: any } } = {};
   private dataSendingMode = false;
+  private mapClickHandler: ((e: L.LeafletMouseEvent) => void) | null = null;
   
   constructor(
     private http: HttpClient,
     private toastService: ToastService
   ) {}
+  
+  ngOnInit(): void {
+    // Initialize with current visibility state
+    this.dataSendingMode = this.isVisible;
+    if (this.dataSendingMode) {
+      this.activateDataSendingMode();
+    }
+  }
+  
+  ngOnDestroy(): void {
+    this.deactivateDataSendingMode();
+    this.cancelAllDataSendingRequests();
+  }
   
   /**
    * Toggle the visibility of the data sending component
@@ -37,26 +51,50 @@ export class DataSendingComponent {
   toggleVisibility(): void {
     this.isVisible = !this.isVisible;
     this.dataSendingMode = this.isVisible;
+    this.visibilityChange.emit(this.isVisible);
     
     if (this.dataSendingMode) {
-      this.toastService.info(`Data sending mode activated. API: ${this.apiSettings.apiUrl.slice(0, 20)}... Click map to send coordinates.`);
-      this.apiError = false;
-      this.apiErrorChange.emit(this.apiError);
+      this.activateDataSendingMode();
     } else {
+      this.deactivateDataSendingMode();
       this.cancelAllDataSendingRequests();
       
       if (this.map) {
         this.map.closePopup();
       }
-      
-      this.toastService.info('Data sending mode deactivated.');
     }
-    
-    this.visibilityChange.emit(this.isVisible);
   }
   
   /**
-   * Handle map click event for data sending
+   * Activate data sending mode
+   */
+  private activateDataSendingMode(): void {
+    // Create a map click handler
+    this.mapClickHandler = (e: L.LeafletMouseEvent) => this.handleMapClick(e);
+    
+    // Add the click handler to the map
+    if (this.map && this.mapClickHandler) {
+      this.map.on('click', this.mapClickHandler);
+    }
+    
+    this.toastService.info(`Data sending mode activated. API: ${this.apiSettings.apiUrl.slice(0, 20)}... Click map to send coordinates.`);
+    this.apiError = false;
+    this.apiErrorChange.emit(this.apiError);
+  }
+  
+  /**
+   * Deactivate data sending mode
+   */
+  private deactivateDataSendingMode(): void {
+    // Remove the click handler from the map
+    if (this.map && this.mapClickHandler) {
+      this.map.off('click', this.mapClickHandler);
+      this.mapClickHandler = null;
+    }
+  }
+
+  /**
+   * Handle map click event
    * @param e The Leaflet mouse event
    */
   handleMapClick(e: L.LeafletMouseEvent): void {
@@ -66,25 +104,6 @@ export class DataSendingComponent {
     const lng = e.latlng.lng;
     
     this.sendCoordinatesToAPI(lat, lng);
-  }
-  
-  /**
-   * Cancel data sending mode
-   */
-  cancelDataSendingMode(): void {
-    if (this.dataSendingMode) {
-      this.cancelAllDataSendingRequests();
-      
-      if (this.map) {
-        this.map.closePopup();
-      }
-      
-      this.dataSendingMode = false;
-      this.isVisible = false;
-      this.visibilityChange.emit(this.isVisible);
-      
-      this.toastService.info('Data sending mode cancelled');
-    }
   }
   
   /**
@@ -309,6 +328,26 @@ export class DataSendingComponent {
       
       // Remove the request from the active requests
       delete this.activeRequests[requestId];
+    }
+  }
+
+  /**
+   * Cancel data sending mode
+   */
+  cancelDataSendingMode(): void {
+    if (this.dataSendingMode) {
+      this.deactivateDataSendingMode();
+      this.cancelAllDataSendingRequests();
+      
+      if (this.map) {
+        this.map.closePopup();
+      }
+      
+      this.dataSendingMode = false;
+      this.isVisible = false;
+      this.visibilityChange.emit(this.isVisible);
+      
+      this.toastService.info('Data sending mode cancelled');
     }
   }
 } 

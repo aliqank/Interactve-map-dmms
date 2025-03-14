@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
@@ -15,14 +15,16 @@ import { ModalComponent } from '../shared/modal/modal.component';
   styleUrls: ['./polygon-draw.component.css']
 })
 export class PolygonDrawComponent implements OnInit, OnDestroy {
-  isVisible = false;
+  @Input() isVisible = false;
+  @Input() map!: L.Map;
+  @Output() visibilityChange = new EventEmitter<boolean>();
+  
   showPolygonNameInput = false;
   newPolygonName = '';
   tempPolygonPoints: L.LatLng[] = [];
   private tempPolygonMarkers: L.Marker[] = [];
   private tempPolygon: L.Polygon | null = null;
   private drawPolygonMode = false;
-  private map!: L.Map;
   private mapClickHandler: ((e: L.LeafletMouseEvent) => void) | null = null;
   private favoritePolygons: FavoritePolygon[] = [];
   private currentPolygonId: string | null = null;
@@ -35,7 +37,9 @@ export class PolygonDrawComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.map = this.mapService.getMap();
+    if (!this.map) {
+      this.map = this.mapService.getMap();
+    }
     this.favoritePolygons = this.storageService.loadFavoritePolygons();
     this.currentPolygonId = this.storageService.loadCurrentPolygonId();
     const savedCoordinates = this.storageService.loadPolygonCoordinates();
@@ -55,6 +59,7 @@ export class PolygonDrawComponent implements OnInit, OnDestroy {
   togglePolygonDrawing(): void {
     this.isVisible = !this.isVisible;
     this.drawPolygonMode = this.isVisible;
+    this.visibilityChange.emit(this.isVisible);
     
     if (this.drawPolygonMode) {
       this.activatePolygonDrawMode();

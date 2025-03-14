@@ -39,7 +39,11 @@
   </div>
   
   <!-- Polygon Control Panel -->
-  <app-polygon-draw></app-polygon-draw>
+  <app-polygon-draw
+    [isVisible]="showPolygonControl"
+    [map]="map"
+    (visibilityChange)="togglePolygonControl()">
+  </app-polygon-draw>
   
   <!-- Settings Control Panel -->
   <app-settings
