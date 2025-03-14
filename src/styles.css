@@ -12,3 +12,14 @@ html, body {
   height: 100%;
   width: 100%;
 }
+
+/* Completely remove blue border rectangle from the map */
+.leaflet-overlay-pane svg rect {
+  display: none !important;
+}
+
+/* Hide all SVG paths that might be creating borders */
+.leaflet-zoom-animated > svg > g > path,
+.leaflet-overlay-pane path.leaflet-interactive {
+  display: none !important;
+}
