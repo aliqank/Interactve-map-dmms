@@ -15,7 +15,7 @@
   </div>
   
   <div class="sidebar-tools">
-    <div class="tool-group" *ngFor="let group of [ControlGroup.MAP_CONTROLS, ControlGroup.ROTATION_CONTROLS]">
+    <div class="tool-group" *ngFor="let group of [ControlGroup.MAP_CONTROLS]">
       <div class="map-control-item" 
            *ngFor="let item of controlItems | filterByGroup:group"
            [class.active]="item.isActive"

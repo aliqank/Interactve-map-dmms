@@ -23,7 +23,6 @@ export enum SidebarIcon {
 
 export enum ControlGroup {
   MAP_CONTROLS = 'map-controls',
-  ROTATION_CONTROLS = 'rotation-controls',
   BOTTOM_CONTROLS = 'bottom-controls'
 }
 
@@ -138,14 +137,14 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
       action: () => this.toggleMapControl('measure'),
       isActive: false
     },
-    {
-      id: 'geojson',
-      icon: SidebarIcon.GEOJSON,
-      title: 'GeoJSON',
-      group: ControlGroup.MAP_CONTROLS,
-      action: () => this.toggleMapControl('geojson'),
-      isActive: false
-    },
+    // {
+    //   id: 'geojson',
+    //   icon: SidebarIcon.GEOJSON,
+    //   title: 'GeoJSON',
+    //   group: ControlGroup.MAP_CONTROLS,
+    //   action: () => this.toggleMapControl('geojson'),
+    //   isActive: false
+    // },
     {
       id: 'polygon',
       icon: SidebarIcon.POLYGON,
@@ -171,14 +170,6 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
       isActive: false
     },
     {
-      id: 'rotate',
-      icon: SidebarIcon.ROTATE,
-      title: 'Rotate Sidebar',
-      group: ControlGroup.ROTATION_CONTROLS,
-      action: () => this.rotateBy(90),
-      isActive: false
-    },
-    {
       id: 'settings',
       icon: SidebarIcon.SETTINGS,
       title: 'Settings',
@@ -187,19 +178,19 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
       isActive: false
     },
     {
-      id: 'location',
-      icon: SidebarIcon.LOCATION,
-      title: 'Find My Location',
-      group: ControlGroup.BOTTOM_CONTROLS,
-      action: () => this.findMyLocation(),
-      isActive: false
-    },
-    {
       id: 'customize',
       icon: SidebarIcon.CUSTOMIZE,
       title: 'Customize Sidebar',
       group: ControlGroup.BOTTOM_CONTROLS,
       action: () => this.toggleCustomizationPanel(),
+      isActive: false
+    },
+    {
+      id: 'rotate',
+      icon: SidebarIcon.ROTATE,
+      title: 'Rotate Sidebar',
+      group: ControlGroup.BOTTOM_CONTROLS,
+      action: () => this.rotateBy(90),
       isActive: false
     },
     {
