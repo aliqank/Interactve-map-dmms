@@ -6,7 +6,6 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { debounceTime, distinctUntilChanged, Subject, timeout, TimeoutError } from 'rxjs';
 import { GeoJsonControlComponent } from './components/geojson-control/geojson-control.component';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
-import { MeasurementModalComponent } from './components/measurement-modal/measurement-modal.component';
 import { LayerControlComponent } from './components/layer-control/layer-control.component';
 import { SearchComponent } from './components/search/search.component';
 import { MeasurementComponent } from './components/measurement/measurement.component';
@@ -26,7 +25,6 @@ import { MapService } from './services/map.service';
     HttpClientModule, 
     GeoJsonControlComponent, 
     SidebarComponent, 
-    MeasurementModalComponent,
     LayerControlComponent,
     SearchComponent,
     MeasurementComponent,
