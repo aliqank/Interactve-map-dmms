@@ -523,6 +523,7 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
   
   // Rotate by a specific angle increment
   rotateBy(degrees: number): void {
+    console.log('rotateBy called with degrees:', degrees);
     let newRotation = (this.sidebarSettings.rotation + degrees) % 360;
     if (newRotation < 0) newRotation += 360;
     
