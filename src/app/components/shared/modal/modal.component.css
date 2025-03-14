@@ -9,8 +9,6 @@
   transition: all 0.3s ease;
   overflow: hidden;
   animation: fadeIn 0.3s ease;
-  top: 20px;
-  left: 70px;
   min-width: 220px;
   max-width: 90vw;
   max-height: 80vh;

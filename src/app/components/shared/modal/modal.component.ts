@@ -13,7 +13,24 @@ export class ModalComponent implements OnInit, AfterViewInit {
   @Input() title: string = '';
   @Input() icon: string = '';
   @Input() modalType: string = '';
-  @Input() isVisible: boolean = false;
+  
+  private _isVisible: boolean = false;
+  @Input() 
+  set isVisible(value: boolean) {
+    this._isVisible = value;
+    
+    // When modal becomes visible, position it correctly
+    if (value && this.isToolModal()) {
+      // Use setTimeout to ensure the modal is rendered before positioning
+      setTimeout(() => {
+        this.positionNextToSidebar();
+      }, 0);
+    }
+  }
+  get isVisible(): boolean {
+    return this._isVisible;
+  }
+  
   @Input() showFooter: boolean = false;
   @Input() width: string = 'auto';
   @Input() height: string = 'auto';
@@ -37,6 +54,11 @@ export class ModalComponent implements OnInit, AfterViewInit {
     
     // Setup event listeners for dragging
     this.setupDragListeners();
+    
+    // Listen for sidebar position changes
+    if (this.isToolModal()) {
+      this.listenForSidebarChanges();
+    }
   }
 
   ngAfterViewInit(): void {
@@ -45,6 +67,9 @@ export class ModalComponent implements OnInit, AfterViewInit {
       this.applyPosition(this.modalPositions[this.modalType]);
     } else if (this.initialPosition) {
       this.applyPosition(this.initialPosition);
+    } else if (this.isToolModal()) {
+      // For tool modals, position them next to the sidebar
+      this.positionNextToSidebar();
     }
   }
 
@@ -156,5 +181,95 @@ export class ModalComponent implements OnInit, AfterViewInit {
    */
   closeModal(): void {
     this.close.emit();
+  }
+
+  /**
+   * Position the modal next to the sidebar
+   */
+  private positionNextToSidebar(): void {
+    const modalElement = this.elementRef.nativeElement.querySelector('.modal-container');
+    if (!modalElement) return;
+
+    // Find the sidebar element
+    const sidebar = document.querySelector('.sidebar') as HTMLElement;
+    if (!sidebar) return;
+
+    // Get sidebar position and dimensions
+    const sidebarRect = sidebar.getBoundingClientRect();
+    
+    // Default offset from sidebar
+    const offset = 15; // 15px margin
+    
+    // Calculate position based on sidebar rotation
+    let left, top;
+    
+    // Determine sidebar rotation
+    const hasRotation90 = sidebar.classList.contains('rotate-90');
+    const hasRotation180 = sidebar.classList.contains('rotate-180');
+    const hasRotation270 = sidebar.classList.contains('rotate-270');
+    
+    if (hasRotation90) {
+      // Sidebar is rotated 90 degrees - place modal below
+      left = sidebarRect.left;
+      top = sidebarRect.bottom + offset;
+    } else if (hasRotation180) {
+      // Sidebar is rotated 180 degrees - place modal to the left
+      left = sidebarRect.left - modalElement.offsetWidth - offset;
+      top = sidebarRect.top;
+    } else if (hasRotation270) {
+      // Sidebar is rotated 270 degrees - place modal above
+      left = sidebarRect.left;
+      top = sidebarRect.top - modalElement.offsetHeight - offset;
+    } else {
+      // Default (no rotation) - place modal to the right
+      left = sidebarRect.right + offset;
+      top = sidebarRect.top;
+    }
+    
+    // Ensure the modal stays within the viewport
+    const maxLeft = window.innerWidth - modalElement.offsetWidth - 10;
+    const maxTop = window.innerHeight - modalElement.offsetHeight - 10;
+    
+    left = Math.max(10, Math.min(left, maxLeft));
+    top = Math.max(10, Math.min(top, maxTop));
+    
+    // Apply position
+    this.renderer.setStyle(modalElement, 'left', `${left}px`);
+    this.renderer.setStyle(modalElement, 'top', `${top}px`);
+  }
+
+  /**
+   * Check if this is a tool-related modal
+   */
+  private isToolModal(): boolean {
+    // List of all tool-related modal types
+    const toolModalTypes = ['tool', 'polygon', 'favorites', 'settings', 'customize', 'geojson', 'search', 'measure', 'dataSending'];
+    return toolModalTypes.includes(this.modalType);
+  }
+
+  /**
+   * Listen for sidebar position changes
+   */
+  private listenForSidebarChanges(): void {
+    // Create a MutationObserver to watch for style changes on the sidebar
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && 
+            (mutation.attributeName === 'style' || 
+             mutation.attributeName === 'class')) {
+          // Reposition the modal when sidebar style or class changes
+          this.positionNextToSidebar();
+        }
+      });
+    });
+    
+    // Start observing the sidebar
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+      observer.observe(sidebar, { 
+        attributes: true, 
+        attributeFilter: ['style', 'class'] 
+      });
+    }
   }
 } 

@@ -348,8 +348,6 @@
 /* Customization panel - more compact */
 .customization-panel {
   position: fixed;
-  top: 20px;
-  left: 70px;
   width: 220px;
   background-color: white;
   border-radius: 8px;

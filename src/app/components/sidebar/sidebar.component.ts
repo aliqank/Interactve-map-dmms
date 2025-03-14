@@ -454,7 +454,12 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
     }
   }
   
-  setTranslate(xPos: number, yPos: number): void {
+  /**
+   * Set the translate position of the sidebar
+   * @param xPos The x position
+   * @param yPos The y position
+   */
+  private setTranslate(xPos: number, yPos: number): void {
     if (!this.sidebarElement) return;
     
     // Update position in settings
@@ -466,6 +471,11 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
     // Use requestAnimationFrame for smoother transitions
     requestAnimationFrame(() => {
       sidebar.style.transform = `translate3d(${xPos}px, ${yPos}px, 0) rotate(${this.sidebarSettings.rotation}deg) scale(${this.sidebarSettings.size})`;
+      
+      // If the customization panel is open, reposition it
+      if (this.showCustomizationPanel) {
+        this.positionCustomizationPanel();
+      }
     });
     
     // Ensure we're not exceeding viewport boundaries
@@ -528,6 +538,11 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
       setTimeout(() => {
         this.saveSettings();
         this.isRotating = false;
+        
+        // If the customization panel is open, reposition it
+        if (this.showCustomizationPanel) {
+          this.positionCustomizationPanel();
+        }
       }, 400);
     });
   }
@@ -609,6 +624,60 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
     if (customizeItem) {
       customizeItem.isActive = this.showCustomizationPanel;
     }
+    
+    // Position the panel next to the sidebar if it's being shown
+    if (this.showCustomizationPanel) {
+      setTimeout(() => this.positionCustomizationPanel(), 0);
+    }
+  }
+  
+  /**
+   * Position the customization panel next to the sidebar
+   */
+  private positionCustomizationPanel(): void {
+    const panel = document.querySelector('.customization-panel') as HTMLElement;
+    const sidebar = this.sidebarElement?.nativeElement as HTMLElement;
+    
+    if (!panel || !sidebar) return;
+    
+    // Get sidebar position and dimensions
+    const sidebarRect = sidebar.getBoundingClientRect();
+    
+    // Default offset from sidebar
+    const offset = 15; // 15px margin
+    
+    // Calculate position based on sidebar rotation
+    let left, top;
+    
+    // Determine sidebar rotation
+    if (this.sidebarSettings.rotation === 90) {
+      // Sidebar is rotated 90 degrees - place panel below
+      left = sidebarRect.left;
+      top = sidebarRect.bottom + offset;
+    } else if (this.sidebarSettings.rotation === 180) {
+      // Sidebar is rotated 180 degrees - place panel to the left
+      left = sidebarRect.left - panel.offsetWidth - offset;
+      top = sidebarRect.top;
+    } else if (this.sidebarSettings.rotation === 270) {
+      // Sidebar is rotated 270 degrees - place panel above
+      left = sidebarRect.left;
+      top = sidebarRect.top - panel.offsetHeight - offset;
+    } else {
+      // Default (no rotation) - place panel to the right
+      left = sidebarRect.right + offset;
+      top = sidebarRect.top;
+    }
+    
+    // Ensure the panel stays within the viewport
+    const maxLeft = window.innerWidth - panel.offsetWidth - 10;
+    const maxTop = window.innerHeight - panel.offsetHeight - 10;
+    
+    left = Math.max(10, Math.min(left, maxLeft));
+    top = Math.max(10, Math.min(top, maxTop));
+    
+    // Apply position
+    panel.style.left = `${left}px`;
+    panel.style.top = `${top}px`;
   }
   
   selectTool(toolId: string): void {
