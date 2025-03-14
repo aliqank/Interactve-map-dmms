@@ -5,7 +5,7 @@
   [modalType]="'tool'"
   (close)="toggleVisibility()">
   
-  <div class="layer-options">
+  <div class="layer-options" modal-content>
     <div class="layer-option" 
          *ngFor="let layer of availableLayers"
          [class.active]="selectedLayer === layer"

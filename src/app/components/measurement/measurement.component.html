@@ -5,7 +5,7 @@
   [modalType]="'tool'"
   (close)="toggleMeasurement()"
 >
-  <div class="measurement-content">
+  <div class="measurement-content" modal-content>
     <div class="distance-display" *ngIf="measureDistance > 0">
       <div class="distance-value">
         <span *ngIf="measureDistance < 1000">{{ measureDistance.toFixed(2) }} m</span>

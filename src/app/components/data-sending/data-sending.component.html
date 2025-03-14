@@ -5,7 +5,7 @@
   [modalType]="'data-sending'"
   (close)="toggleVisibility()"
 >
-  <div class="data-sending-content">
+  <div class="data-sending-content" modal-content>
     <div class="data-sending-info">
       <div class="data-sending-status" [class.active]="isVisible">
         <i class="fa" [class.fa-check-circle]="isVisible" [class.fa-times-circle]="!isVisible"></i>

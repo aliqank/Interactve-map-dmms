@@ -1,100 +1,102 @@
 <app-modal [isVisible]="isVisible" [title]="'GeoJSON Layers'" [icon]="'map'" [modalType]="'tool'" (close)="toggleVisibility()">
-  <h3>GeoJSON Layers</h3>
-  
-  <!-- File Upload Section -->
-  <div class="upload-section">
-    <label for="geojson-file" class="file-upload-btn">
-      <i class="fa fa-upload"></i> Upload GeoJSON
-    </label>
-    <input type="file" id="geojson-file" (change)="onFileSelected($event)" accept=".json,.geojson" style="display: none;">
+  <div modal-content>
+    <h3>GeoJSON Layers</h3>
     
-    <!-- URL Input -->
-    <div class="url-input">
-      <input #urlInput type="text" placeholder="Enter GeoJSON URL">
-      <input #nameInput type="text" placeholder="Layer name">
-      <button (click)="loadFromUrl(urlInput.value, nameInput.value || 'GeoJSON Layer')" class="secondary-button">
-        <i class="fa fa-globe"></i> Load
-      </button>
-    </div>
-  </div>
-  
-  <!-- Loading and Error Messages -->
-  <div *ngIf="isLoading" class="loading-message">
-    <i class="fa fa-spinner fa-spin"></i> Loading GeoJSON...
-  </div>
-  
-  <div *ngIf="errorMessage" class="error-message">
-    <i class="fa fa-exclamation-circle"></i> {{ errorMessage }}
-  </div>
-  
-  <!-- Layers List -->
-  <div *ngIf="layers.length > 0" class="layers-list">
-    <h4>Loaded Layers</h4>
-    <div *ngFor="let layer of layers" class="layer-item" [class.active]="activeLayerId === layer.id">
-      <div class="layer-header" (click)="setActiveLayer(layer.id)">
-        <div class="layer-visibility">
-          <input type="checkbox" [checked]="layer.visible" (click)="$event.stopPropagation(); toggleLayerVisibility(layer.id)">
-        </div>
-        <div class="layer-name">{{ layer.name }}</div>
-        <div class="layer-actions">
-          <button (click)="$event.stopPropagation(); zoomToLayer(layer.id)" title="Zoom to layer">
-            <i class="fa fa-search"></i>
-          </button>
-          <button (click)="$event.stopPropagation(); removeLayer(layer.id)" title="Remove layer">
-            <i class="fa fa-trash"></i>
-          </button>
-        </div>
-      </div>
+    <!-- File Upload Section -->
+    <div class="upload-section">
+      <label for="geojson-file" class="file-upload-btn">
+        <i class="fa fa-upload"></i> Upload GeoJSON
+      </label>
+      <input type="file" id="geojson-file" (change)="onFileSelected($event)" accept=".json,.geojson" style="display: none;">
       
-      <!-- Layer Styling Options (shown when layer is active) -->
-      <div *ngIf="activeLayerId === layer.id" class="layer-styling">
-        <h5>Style Options</h5>
-        <div class="style-presets">
-          <div *ngFor="let preset of colorPresets" 
-               class="color-preset" 
-               [style.background-color]="preset.color"
-               (click)="applyColorPreset(preset)"
-               [title]="preset.color">
+      <!-- URL Input -->
+      <div class="url-input">
+        <input #urlInput type="text" placeholder="Enter GeoJSON URL">
+        <input #nameInput type="text" placeholder="Layer name">
+        <button (click)="loadFromUrl(urlInput.value, nameInput.value || 'GeoJSON Layer')" class="secondary-button">
+          <i class="fa fa-globe"></i> Load
+        </button>
+      </div>
+    </div>
+    
+    <!-- Loading and Error Messages -->
+    <div *ngIf="isLoading" class="loading-message">
+      <i class="fa fa-spinner fa-spin"></i> Loading GeoJSON...
+    </div>
+    
+    <div *ngIf="errorMessage" class="error-message">
+      <i class="fa fa-exclamation-circle"></i> {{ errorMessage }}
+    </div>
+    
+    <!-- Layers List -->
+    <div *ngIf="layers.length > 0" class="layers-list">
+      <h4>Loaded Layers</h4>
+      <div *ngFor="let layer of layers" class="layer-item" [class.active]="activeLayerId === layer.id">
+        <div class="layer-header" (click)="setActiveLayer(layer.id)">
+          <div class="layer-visibility">
+            <input type="checkbox" [checked]="layer.visible" (click)="$event.stopPropagation(); toggleLayerVisibility(layer.id)">
+          </div>
+          <div class="layer-name">{{ layer.name }}</div>
+          <div class="layer-actions">
+            <button (click)="$event.stopPropagation(); zoomToLayer(layer.id)" title="Zoom to layer">
+              <i class="fa fa-search"></i>
+            </button>
+            <button (click)="$event.stopPropagation(); removeLayer(layer.id)" title="Remove layer">
+              <i class="fa fa-trash"></i>
+            </button>
           </div>
         </div>
         
-        <div class="style-options">
-          <div class="style-option">
-            <label>Line Color</label>
-            <input #colorInput type="color" [value]="layer.style.color" 
-                  (change)="updateLayerStyle(layer.id, {color: colorInput.value})">
+        <!-- Layer Styling Options (shown when layer is active) -->
+        <div *ngIf="activeLayerId === layer.id" class="layer-styling">
+          <h5>Style Options</h5>
+          <div class="style-presets">
+            <div *ngFor="let preset of colorPresets" 
+                 class="color-preset" 
+                 [style.background-color]="preset.color"
+                 (click)="applyColorPreset(preset)"
+                 [title]="preset.color">
+            </div>
           </div>
-          <div class="style-option">
-            <label>Fill Color</label>
-            <input #fillColorInput type="color" [value]="layer.style.fillColor" 
-                  (change)="updateLayerStyle(layer.id, {fillColor: fillColorInput.value})">
-          </div>
-          <div class="style-option">
-            <label>Line Width</label>
-            <input #weightInput type="range" min="1" max="10" [value]="layer.style.weight" 
-                  (change)="updateLayerStyle(layer.id, {weight: +weightInput.value})">
-          </div>
-          <div class="style-option">
-            <label>Opacity</label>
-            <input #opacityInput type="range" min="0" max="1" step="0.1" [value]="layer.style.opacity" 
-                  (change)="updateLayerStyle(layer.id, {opacity: +opacityInput.value})">
-          </div>
-          <div class="style-option">
-            <label>Fill Opacity</label>
-            <input #fillOpacityInput type="range" min="0" max="1" step="0.1" [value]="layer.style.fillOpacity" 
-                  (change)="updateLayerStyle(layer.id, {fillOpacity: +fillOpacityInput.value})">
+          
+          <div class="style-options">
+            <div class="style-option">
+              <label>Line Color</label>
+              <input #colorInput type="color" [value]="layer.style.color" 
+                    (change)="updateLayerStyle(layer.id, {color: colorInput.value})">
+            </div>
+            <div class="style-option">
+              <label>Fill Color</label>
+              <input #fillColorInput type="color" [value]="layer.style.fillColor" 
+                    (change)="updateLayerStyle(layer.id, {fillColor: fillColorInput.value})">
+            </div>
+            <div class="style-option">
+              <label>Line Width</label>
+              <input #weightInput type="range" min="1" max="10" [value]="layer.style.weight" 
+                    (change)="updateLayerStyle(layer.id, {weight: +weightInput.value})">
+            </div>
+            <div class="style-option">
+              <label>Opacity</label>
+              <input #opacityInput type="range" min="0" max="1" step="0.1" [value]="layer.style.opacity" 
+                    (change)="updateLayerStyle(layer.id, {opacity: +opacityInput.value})">
+            </div>
+            <div class="style-option">
+              <label>Fill Opacity</label>
+              <input #fillOpacityInput type="range" min="0" max="1" step="0.1" [value]="layer.style.fillOpacity" 
+                    (change)="updateLayerStyle(layer.id, {fillOpacity: +fillOpacityInput.value})">
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-  
-  <!-- Empty State -->
-  <div *ngIf="!isLoading && layers.length === 0" class="empty-state">
-    <p>No GeoJSON layers loaded</p>
-    <p>Upload a file or enter a URL to add a layer</p>
-    <button (click)="loadSampleGeoJson()" class="sample-button">
-      <i class="fa fa-map"></i> Load Sample GeoJSON
-    </button>
+    
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && layers.length === 0" class="empty-state">
+      <p>No GeoJSON layers loaded</p>
+      <p>Upload a file or enter a URL to add a layer</p>
+      <button (click)="loadSampleGeoJson()" class="sample-button">
+        <i class="fa fa-map"></i> Load Sample GeoJSON
+      </button>
+    </div>
   </div>
 </app-modal>
