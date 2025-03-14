@@ -82,6 +82,7 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
   private boundOnDrag: (event: MouseEvent | TouchEvent) => void;
   private boundStopDrag: () => void;
   private boundKeyDown: (event: KeyboardEvent) => void;
+  private boundHandleResize: () => void;
   
   // Customization settings
   showCustomizationPanel = false;
@@ -226,6 +227,7 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
     this.boundOnDrag = this.onDrag.bind(this);
     this.boundStopDrag = this.stopDrag.bind(this);
     this.boundKeyDown = this.handleKeyDown.bind(this);
+    this.boundHandleResize = this.handleResize.bind(this);
   }
   
   ngOnInit(): void {
@@ -238,9 +240,8 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
     // Add keyboard event listener for ESC key
     window.addEventListener('keydown', this.boundKeyDown);
     
-    // Clear localStorage to apply new default settings
-    // This line can be removed after users have updated to the new version
-    localStorage.removeItem('sidebarSettings');
+    // Add window resize event listener
+    window.addEventListener('resize', this.boundHandleResize);
   }
   
   ngAfterViewInit(): void {
@@ -253,6 +254,30 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
         
         // Apply settings after a short delay to ensure DOM is ready
         setTimeout(() => {
+          // Ensure position is within viewport bounds
+          const { x, y } = this.sidebarSettings.position;
+          const safetyMargin = 50;
+          
+          // Get sidebar dimensions
+          const sidebar = this.sidebarElement.nativeElement;
+          const sidebarWidth = sidebar.offsetWidth || 42;
+          const sidebarHeight = sidebar.offsetHeight || 300;
+          
+          // Constrain position to ensure sidebar is visible
+          let newX = x;
+          let newY = y;
+          
+          if (newX < 0) newX = 0;
+          if (newY < 0) newY = 0;
+          if (newX > window.innerWidth - safetyMargin) newX = window.innerWidth - safetyMargin;
+          if (newY > window.innerHeight - safetyMargin) newY = window.innerHeight - safetyMargin;
+          
+          // Update position if needed
+          if (newX !== x || newY !== y) {
+            this.sidebarSettings.position = { x: newX, y: newY };
+          }
+          
+          // Apply the settings
           this.setTranslate(this.sidebarSettings.position.x, this.sidebarSettings.position.y);
           this.applySettings();
         }, 100);
@@ -270,6 +295,7 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
     window.removeEventListener('mouseup', this.boundStopDrag);
     window.removeEventListener('touchend', this.boundStopDrag);
     window.removeEventListener('keydown', this.boundKeyDown);
+    window.removeEventListener('resize', this.boundHandleResize);
     
     // Remove the global event catcher if it exists
     if (this.eventCatcher && this.eventCatcher.parentNode) {
@@ -412,6 +438,9 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
       
       // Save the current position to localStorage
       this.saveSettings();
+      
+      // Log the saved position for debugging
+      console.log('Saved sidebar position:', this.sidebarSettings.position);
     }
   }
   
@@ -423,15 +452,13 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
     this.sidebarSettings.position.y = yPos;
     
     // For horizontal orientations (90° or 270°), adjust the transform origin
-    if (this.sidebarSettings.rotation === 90) {
-      sidebar.style.transformOrigin = 'top left';
-    } else if (this.sidebarSettings.rotation === 270) {
-      sidebar.style.transformOrigin = 'top left';
-    } else {
-      sidebar.style.transformOrigin = 'top left';
-    }
+    sidebar.style.transformOrigin = 'top left';
     
+    // Apply the transform with position and rotation
     sidebar.style.transform = `translate3d(${xPos}px, ${yPos}px, 0) rotate(${this.sidebarSettings.rotation}deg)`;
+    
+    // Save the updated position to localStorage
+    this.saveSettings();
   }
   
   // Set rotation directly
@@ -754,5 +781,26 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
     };
     
     return shortcuts[toolId] || null;
+  }
+  
+  handleResize(): void {
+    // Ensure sidebar stays within viewport
+    const { x, y } = this.sidebarSettings.position;
+    const safetyMargin = 50;
+    
+    // Constrain position to ensure sidebar is visible
+    let newX = x;
+    let newY = y;
+    
+    if (newX < 0) newX = 0;
+    if (newY < 0) newY = 0;
+    if (newX > window.innerWidth - safetyMargin) newX = window.innerWidth - safetyMargin;
+    if (newY > window.innerHeight - safetyMargin) newY = window.innerHeight - safetyMargin;
+    
+    // Update position if needed
+    if (newX !== x || newY !== y) {
+      this.sidebarSettings.position = { x: newX, y: newY };
+      this.setTranslate(newX, newY);
+    }
   }
 }
