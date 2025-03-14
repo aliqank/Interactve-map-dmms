@@ -1,19 +1,22 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GeoJsonService } from '../../services/geojson.service';
 import { GeoJsonLayer, GeoJsonLayerStyle } from '../../models/geojson.model';
 import * as L from 'leaflet';
+import { ModalComponent } from '../shared/modal/modal.component';
 
 @Component({
   selector: 'app-geojson-control',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ModalComponent],
   templateUrl: './geojson-control.component.html',
   styleUrls: ['./geojson-control.component.css']
 })
-export class GeoJsonControlComponent {
+export class GeoJsonControlComponent implements OnChanges {
   @Input() map!: L.Map;
+  @Input() isVisible = false;
+  @Output() visibilityChange = new EventEmitter<boolean>();
   @Output() layerAdded = new EventEmitter<GeoJsonLayer>();
   @Output() layerRemoved = new EventEmitter<string>();
   @Output() layerVisibilityChanged = new EventEmitter<{id: string, visible: boolean}>();
@@ -23,20 +26,33 @@ export class GeoJsonControlComponent {
   errorMessage = '';
   activeLayerId: string | null = null;
   
-  // Color presets for styling
+  // Color presets for GeoJSON layers
   colorPresets = [
-    { name: 'Blue', color: '#3388ff', fillColor: '#3388ff' },
-    { name: 'Red', color: '#ff3333', fillColor: '#ff3333' },
-    { name: 'Green', color: '#33cc33', fillColor: '#33cc33' },
-    { name: 'Orange', color: '#ff8800', fillColor: '#ff8800' },
-    { name: 'Purple', color: '#8833ff', fillColor: '#8833ff' }
+    { color: '#3388ff', fillColor: '#3388ff33' }, // Default blue
+    { color: '#ff3333', fillColor: '#ff333333' }, // Red
+    { color: '#33cc33', fillColor: '#33cc3333' }, // Green
+    { color: '#9933cc', fillColor: '#9933cc33' }, // Purple
+    { color: '#ff9900', fillColor: '#ff990033' }, // Orange
+    { color: '#00cccc', fillColor: '#00cccc33' }  // Teal
   ];
   
   constructor(private geoJsonService: GeoJsonService) {}
   
+  ngOnChanges(changes: SimpleChanges): void {
+    // React to changes in the isVisible input
+    if (changes['isVisible'] && !changes['isVisible'].firstChange) {
+      // Handle visibility changes if needed
+    }
+  }
+  
   /**
-   * Handle file input change event
+   * Toggle visibility of the component
    */
+  toggleVisibility(): void {
+    this.isVisible = !this.isVisible;
+    this.visibilityChange.emit(this.isVisible);
+  }
+  
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) {
