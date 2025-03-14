@@ -6,37 +6,63 @@
   (visibilityChange)="toggleVisibility()"
 >
   <div class="settings-form" modal-content>
+    <div class="settings-intro">
+      <i class="fa fa-info-circle"></i>
+      <p>Configure your API settings for data transmission</p>
+    </div>
+    
     <div class="form-group">
       <div class="setting-label">
         <i class="fa fa-link"></i> API URL
       </div>
-      <input type="text" 
-             [(ngModel)]="localSettings.apiUrl" 
-             class="setting-input" 
-             placeholder="Enter API endpoint">
+      <div class="input-wrapper">
+        <input type="text" 
+               [(ngModel)]="localSettings.apiUrl" 
+               class="setting-input" 
+               placeholder="Enter API endpoint">
+        <div class="input-icon">
+          <i class="fa fa-globe"></i>
+        </div>
+      </div>
+      <div class="setting-hint">The endpoint URL for API requests</div>
     </div>
     
     <div class="form-group">
       <div class="setting-label">
         <i class="fa fa-key"></i> Bearer ID
       </div>
-      <input type="text" 
-             [(ngModel)]="localSettings.bearerId" 
-             class="setting-input" 
-             placeholder="Enter bearer ID">
+      <div class="input-wrapper">
+        <input type="text" 
+               [(ngModel)]="localSettings.bearerId" 
+               class="setting-input" 
+               placeholder="Enter bearer ID">
+        <div class="input-icon">
+          <i class="fa fa-shield-alt"></i>
+        </div>
+      </div>
+      <div class="setting-hint">Authentication token for API access</div>
     </div>
     
     <div class="form-group">
       <div class="setting-label">
         <i class="fa fa-tag"></i> Tracker ID
       </div>
-      <input type="text" 
-             [(ngModel)]="localSettings.trackerId" 
-             class="setting-input" 
-             placeholder="Enter tracker ID">
+      <div class="input-wrapper">
+        <input type="text" 
+               [(ngModel)]="localSettings.trackerId" 
+               class="setting-input" 
+               placeholder="Enter tracker ID">
+        <div class="input-icon">
+          <i class="fa fa-map-marker-alt"></i>
+        </div>
+      </div>
+      <div class="setting-hint">Unique identifier for your tracking device</div>
     </div>
     
     <div class="settings-actions">
+      <button (click)="toggleVisibility()" class="cancel-button">
+        <i class="fa fa-times"></i> Cancel
+      </button>
       <button (click)="saveSettings()" class="save-settings-button">
         <i class="fa fa-save"></i> Save Settings
       </button>

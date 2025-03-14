@@ -78,4 +78,26 @@ export class LayerControlComponent implements OnInit, OnDestroy, OnChanges {
         return 'fa-map';
     }
   }
+
+  /**
+   * Get the description for a layer
+   * @param layer The layer to get the description for
+   * @returns The description
+   */
+  getLayerDescription(layer: string): string {
+    switch (layer) {
+      case 'roadmap':
+        return 'Standard road map view';
+      case 'satellite':
+        return 'Satellite imagery';
+      case 'hybrid':
+        return 'Satellite imagery with roads';
+      case 'terrain':
+        return 'Topographic features';
+      case 'osm':
+        return 'OpenStreetMap standard view';
+      default:
+        return '';
+    }
+  }
 } 

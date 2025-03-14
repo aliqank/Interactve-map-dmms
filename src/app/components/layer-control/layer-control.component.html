@@ -10,8 +10,16 @@
          *ngFor="let layer of availableLayers"
          [class.active]="selectedLayer === layer"
          (click)="changeLayer(layer)">
-      <i class="fa" [ngClass]="getLayerIcon(layer)"></i>
-      {{ layer | titlecase }}
+      <div class="layer-icon">
+        <i class="fa" [ngClass]="getLayerIcon(layer)"></i>
+      </div>
+      <div class="layer-info">
+        <div class="layer-name">{{ layer | titlecase }}</div>
+        <div class="layer-description">{{ getLayerDescription(layer) }}</div>
+      </div>
+      <div class="layer-selected" *ngIf="selectedLayer === layer">
+        <i class="fa fa-check"></i>
+      </div>
     </div>
   </div>
 </app-modal> 

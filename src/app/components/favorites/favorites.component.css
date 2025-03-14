@@ -1,97 +1,226 @@
-.favorites-list {
+/* Header */
+.favorites-header {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
 }
 
+.favorites-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.favorites-title i {
+  color: #4d7cfe;
+  font-size: 18px;
+}
+
+.favorites-title h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.favorites-counter {
+  background-color: #4d7cfe;
+  color: white;
+  font-weight: 600;
+  height: 24px;
+  min-width: 24px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  font-size: 13px;
+}
+
+/* Empty state */
 .no-favorites {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px 0;
+  padding: 30px 0;
   color: #888;
+  text-align: center;
 }
 
-.no-favorites i {
-  font-size: 24px;
-  margin-bottom: 8px;
+.empty-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #f0f7ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.empty-icon i {
+  font-size: 28px;
+  color: #4d7cfe;
+}
+
+.no-favorites h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #555;
+}
+
+.no-favorites p {
+  margin: 0;
+  font-size: 14px;
+  color: #888;
+  max-width: 240px;
+  line-height: 1.4;
+}
+
+/* Favorites list */
+.favorites-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.favorites-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.favorites-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.favorites-list::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.favorites-list::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
 }
 
 .favorite-item {
-  padding: 12px;
-  border-radius: 6px;
+  padding: 14px;
+  border-radius: 8px;
   background-color: #f8f9fa;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 12px;
   transition: all 0.2s ease;
   cursor: pointer;
+  position: relative;
+  border: 1px solid transparent;
 }
 
 .favorite-item:hover {
-  background-color: #e9ecef;
+  background-color: #f0f7ff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .favorite-item.active {
-  background-color: #e7f5ff;
-  border-left: 3px solid #1971c2;
+  background-color: #f0f7ff;
+  border-color: #4d7cfe;
+  box-shadow: 0 2px 8px rgba(77, 124, 254, 0.15);
+}
+
+.favorite-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #e7f0ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.favorite-icon i {
+  color: #4d7cfe;
+  font-size: 16px;
 }
 
 .favorite-info {
   flex: 1;
+  min-width: 0; /* Ensures text truncation works */
 }
 
 .favorite-info h4 {
   margin: 0 0 4px 0;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.favorite-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #777;
+}
+
+.favorite-date, .favorite-points {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
-.current-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #1971c2;
-  color: white;
-  font-size: 10px;
-  padding: 2px 4px;
-  border-radius: 4px;
-}
-
-.favorite-info small {
+.favorite-meta i {
   font-size: 12px;
-  color: #868e96;
+  color: #999;
 }
 
 .favorite-actions {
   display: flex;
-  gap: 6px;
+  gap: 8px;
+  margin-left: auto;
 }
 
 .favorite-action-button {
   background: none;
   border: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #495057;
+  color: #555;
   transition: all 0.2s ease;
 }
 
-.favorite-action-button:hover {
-  background-color: #dee2e6;
-  color: #1971c2;
+.favorite-action-button.load:hover {
+  background-color: #e7f0ff;
+  color: #4d7cfe;
 }
 
 .favorite-action-button.delete:hover {
   background-color: #ffe3e3;
   color: #e03131;
+}
+
+.current-indicator {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #4d7cfe;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 } 

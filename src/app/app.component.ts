@@ -287,24 +287,9 @@ export class AppComponent implements AfterViewInit, OnInit {
       }
       console.log('Map container found:', mapContainer);
       
-      // Create a simple map
-      this.map = L.map('map', {
-        center: [51.1694, 71.4491], // Astana, Kazakhstan
-        zoom: 13
-      });
-      
-      console.log('Map created:', this.map);
-      
-      // Add a simple OSM tile layer
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(this.map);
-      
-      console.log('Tile layer added');
-      
-      // Make the map available to the MapService
-      this.mapService.setMap(this.map);
-      console.log('Map set in MapService');
+      // Initialize the map using the MapService
+      this.map = this.mapService.initializeMap('map');
+      console.log('Map initialized through MapService:', this.map);
       
       // Add click event listener for coordinates
       this.map.on('click', (e: L.LeafletMouseEvent) => {
@@ -321,11 +306,18 @@ export class AppComponent implements AfterViewInit, OnInit {
           .openOn(this.map);
       });
       
+      // Load saved polygon if available
+      const savedCoordinates = this.storageService.loadPolygonCoordinates();
+      if (savedCoordinates && savedCoordinates.length >= 3) {
+        console.log('Drawing saved polygon on map initialization');
+        this.drawPolygonOnMap(savedCoordinates);
+      }
+      
       // Force a resize to ensure the map renders correctly
       setTimeout(() => {
         console.log('Forcing map resize...');
         this.map.invalidateSize();
-      }, 100);
+      }, 500);
     } catch (error) {
       console.error('Error initializing map:', error);
     }
@@ -353,6 +345,9 @@ export class AppComponent implements AfterViewInit, OnInit {
    * @param coordinates The coordinates of the polygon
    */
   private drawPolygonOnMap(coordinates: { lat: number; lng: number; }[]): void {
+    // Store current layer
+    const currentLayer = this.mapService.getSelectedLayer();
+    
     // Clear existing polygons
     this.map.eachLayer((layer) => {
       if (layer instanceof L.Polygon) {
@@ -370,6 +365,9 @@ export class AppComponent implements AfterViewInit, OnInit {
       
       // Fit the map to the polygon bounds
       this.map.fitBounds(polygon.getBounds());
+      
+      // Restore the selected layer
+      this.mapService.changeMapLayer(currentLayer);
     }
   }
 

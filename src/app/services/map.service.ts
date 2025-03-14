@@ -51,6 +51,13 @@ export class MapService {
       apiKey: this.googleMapsApiKey,
       version: 'weekly'
     });
+    
+    // Load the selected layer from localStorage if available
+    const savedLayer = localStorage.getItem('selectedMapLayer');
+    if (savedLayer) {
+      this._selectedLayer.next(savedLayer);
+      console.log('Loaded saved map layer from localStorage:', savedLayer);
+    }
   }
 
   /**
@@ -60,6 +67,8 @@ export class MapService {
    */
   initializeMap(elementId: string): L.Map {
     try {
+      console.log('MapService: Initializing map with element ID:', elementId);
+      
       // Create the map
       this.map = L.map(elementId, {
         center: [51.1694, 71.4491], // Astana, Kazakhstan
@@ -67,6 +76,8 @@ export class MapService {
         zoomControl: false,
         attributionControl: false
       });
+      
+      console.log('MapService: Map created successfully');
 
       // Add zoom control to the bottom right
       L.control.zoom({
@@ -80,34 +91,42 @@ export class MapService {
 
       // Initialize base layers
       this.initializeBaseLayers();
+      console.log('MapService: Base layers initialized');
 
       // Add a fallback OSM layer in case Google Maps layers aren't loaded yet
       if (!this.baseLayers['osm']) {
         this.baseLayers['osm'] = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         });
+        console.log('MapService: Added OSM fallback layer');
       }
 
       // Add the default layer to the map
       const defaultLayer = this.getSelectedLayer();
+      console.log('MapService: Default layer is:', defaultLayer);
+      
       if (this.baseLayers[defaultLayer]) {
         this.baseLayers[defaultLayer].addTo(this.map);
+        console.log('MapService: Added default layer to map:', defaultLayer);
       } else {
         // Fallback to OSM if the default layer isn't available
         this.baseLayers['osm'].addTo(this.map);
+        console.log('MapService: Default layer not available, using OSM fallback');
       }
 
       // Initialize layer control
       this.initializeLayerControl();
+      console.log('MapService: Layer control initialized');
 
       // Force a resize event to ensure the map renders correctly
       setTimeout(() => {
         this.map.invalidateSize();
+        console.log('MapService: Map size invalidated');
       }, 100);
 
       return this.map;
     } catch (error) {
-      console.error('Error initializing map:', error);
+      console.error('MapService: Error initializing map:', error);
       throw error;
     }
   }
@@ -116,19 +135,58 @@ export class MapService {
    * Initialize the base layers
    */
   private initializeBaseLayers(): void {
+    console.log('MapService: Initializing base layers');
+    
     // OpenStreetMap layer
     this.baseLayers['osm'] = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     });
+    console.log('MapService: OSM layer initialized');
 
-    // Google Maps layers will be initialized when needed
-    this.initializeGoogleMapsLayers();
+    // Initialize Google Maps layers immediately to avoid white screen
+    try {
+      // Google Maps Road layer
+      this.baseLayers['roadmap'] = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '&copy; Google Maps'
+      });
+      
+      // Google Maps Satellite layer
+      this.baseLayers['satellite'] = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '&copy; Google Maps'
+      });
+      
+      // Google Maps Hybrid layer
+      this.baseLayers['hybrid'] = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '&copy; Google Maps'
+      });
+      
+      // Google Maps Terrain layer
+      this.baseLayers['terrain'] = L.tileLayer('https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', {
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '&copy; Google Maps'
+      });
+      
+      this.googleMapsLoaded = true;
+      console.log('MapService: Google Maps layers initialized directly');
+    } catch (error) {
+      console.error('MapService: Error initializing Google Maps layers directly:', error);
+      // Still try the async loading as fallback
+      this.initializeGoogleMapsLayers();
+    }
   }
 
   /**
    * Initialize Google Maps layers
    */
   private initializeGoogleMapsLayers(): void {
+    if (!this.map) {
+      console.warn('Map not initialized yet, skipping Google Maps layer initialization');
+      return;
+    }
+
     this.googleMapsLoader.load().then(() => {
       this.googleMapsLoaded = true;
 
@@ -166,6 +224,13 @@ export class MapService {
       this.updateLayerControl();
     }).catch(error => {
       console.error('Error loading Google Maps:', error);
+      // Fallback to OSM if Google Maps fails to load
+      if (!this.baseLayers['osm']) {
+        this.baseLayers['osm'] = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        });
+      }
+      this.changeMapLayer('osm');
     });
   }
 
@@ -173,10 +238,29 @@ export class MapService {
    * Initialize the layer control
    */
   private initializeLayerControl(): void {
+    // Create the layer control but don't add it to the map
     this.layerControl = L.control.layers({}, {}, {
       position: 'bottomleft',
       collapsed: true
-    }).addTo(this.map);
+    });
+    
+    // Add the control to the map
+    this.layerControl.addTo(this.map);
+    
+    // Hide the default toggle button by adding a CSS class
+    const layerControlElement = document.querySelector('.leaflet-control-layers');
+    if (layerControlElement) {
+      layerControlElement.classList.add('leaflet-control-layers-hidden');
+      
+      // Add a style tag to hide the default control toggle
+      const style = document.createElement('style');
+      style.textContent = `
+        .leaflet-control-layers-hidden .leaflet-control-layers-toggle {
+          display: none !important;
+        }
+      `;
+      document.head.appendChild(style);
+    }
 
     this.updateLayerControl();
   }
@@ -185,18 +269,30 @@ export class MapService {
    * Update the layer control with the current base layers
    */
   private updateLayerControl(): void {
-    // Remove all layers from the control
-    this.layerControl.remove();
+    // Remove the existing control if it exists
+    if (this.layerControl && this.map) {
+      this.layerControl.remove();
+    }
 
-    // Create a new control
-    this.layerControl = L.control.layers({}, {}, {
-      position: 'bottomleft',
-      collapsed: true
-    }).addTo(this.map);
+    // Create a new control if map exists
+    if (this.map) {
+      this.layerControl = L.control.layers({}, {}, {
+        position: 'bottomleft',
+        collapsed: true
+      }).addTo(this.map);
 
-    // Add all base layers to the control
-    for (const [name, layer] of Object.entries(this.baseLayers)) {
-      this.layerControl.addBaseLayer(layer, name.charAt(0).toUpperCase() + name.slice(1));
+      // Add all base layers to the control
+      for (const [name, layer] of Object.entries(this.baseLayers)) {
+        this.layerControl.addBaseLayer(layer, name.charAt(0).toUpperCase() + name.slice(1));
+      }
+      
+      // Hide the default toggle button again
+      setTimeout(() => {
+        const layerControlElement = document.querySelector('.leaflet-control-layers');
+        if (layerControlElement) {
+          layerControlElement.classList.add('leaflet-control-layers-hidden');
+        }
+      }, 0);
     }
   }
 
@@ -311,5 +407,34 @@ export class MapService {
    */
   fitBounds(bounds: L.LatLngBoundsExpression, options?: L.FitBoundsOptions): void {
     this.map.fitBounds(bounds, options);
+  }
+
+  /**
+   * Programmatically expand the layer control
+   * This can be used by your custom control to show the layer options
+   */
+  expandLayerControl(): void {
+    const layerControlElement = document.querySelector('.leaflet-control-layers');
+    if (layerControlElement) {
+      layerControlElement.classList.add('leaflet-control-layers-expanded');
+    }
+  }
+  
+  /**
+   * Programmatically collapse the layer control
+   */
+  collapseLayerControl(): void {
+    const layerControlElement = document.querySelector('.leaflet-control-layers');
+    if (layerControlElement) {
+      layerControlElement.classList.remove('leaflet-control-layers-expanded');
+    }
+  }
+  
+  /**
+   * Get all available map layers
+   * @returns An object with layer names as keys and layer instances as values
+   */
+  getAvailableLayers(): {[key: string]: L.TileLayer} {
+    return this.baseLayers;
   }
 } 

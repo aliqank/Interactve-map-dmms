@@ -1,40 +1,69 @@
 <app-modal 
   [isVisible]="isVisible"
-  [title]="'Favorites'"
+  [title]="'Saved Polygons'"
   [icon]="'fa-star'"
   (visibilityChange)="toggleVisibility()"
   modalType="favorites">
   
   <div modal-content>
-    <!-- Debug info -->
-  
-    
-    <div *ngIf="localFavoritePolygons.length === 0" class="no-favorites">
-      <i class="fa fa-star-o"></i>
-      <p>No favorites yet</p>
+    <!-- Header with counter -->
+    <div class="favorites-header">
+      <div class="favorites-title">
+        <i class="fa fa-map"></i>
+        <h3>Your Saved Polygons</h3>
+      </div>
+      <div class="favorites-counter" *ngIf="localFavoritePolygons.length > 0">
+        {{ localFavoritePolygons.length }}
+      </div>
     </div>
     
+    <!-- Empty state -->
+    <div *ngIf="localFavoritePolygons.length === 0" class="no-favorites">
+      <div class="empty-icon">
+        <i class="fa fa-map-o"></i>
+      </div>
+      <h4>No Saved Polygons</h4>
+      <p>Draw a polygon on the map and save it to see it here.</p>
+    </div>
+    
+    <!-- Favorites list -->
     <div *ngIf="localFavoritePolygons.length > 0" class="favorites-list">
       <div *ngFor="let favorite of localFavoritePolygons" 
            class="favorite-item" 
            [class.active]="localCurrentPolygonId === favorite.id"
            (click)="loadFavoritePolygon(favorite)">
+        <div class="favorite-icon">
+          <i class="fa fa-map-marker"></i>
+        </div>
         <div class="favorite-info">
-          <h4>
-            {{ favorite.name }}
-            <span *ngIf="localCurrentPolygonId === favorite.id" class="current-badge">
-              <i class="fa fa-check"></i>
+          <h4>{{ favorite.name }}</h4>
+          <div class="favorite-meta">
+            <span class="favorite-date">
+              <i class="fa fa-calendar-o"></i>
+              {{ favorite.createdAt | date:'MMM d, y' }}
             </span>
-          </h4>
-          <small>{{ favorite.createdAt | date:'short' }}</small>
+            <span class="favorite-points">
+              <i class="fa fa-dot-circle-o"></i>
+              {{ favorite.coordinates.length }} points
+            </span>
+          </div>
         </div>
         <div class="favorite-actions">
-          <button class="favorite-action-button" (click)="loadFavoritePolygon(favorite)" title="Load">
-            <i class="fa fa-map-marker"></i>
+          <button 
+            class="favorite-action-button load" 
+            (click)="loadFavoritePolygon(favorite)" 
+            title="Load this polygon">
+            <i class="fa fa-map"></i>
           </button>
-          <button class="favorite-action-button delete" (click)="deleteFavoritePolygon(favorite, $event)" title="Delete">
+          <button 
+            class="favorite-action-button delete" 
+            (click)="deleteFavoritePolygon(favorite, $event)" 
+            title="Delete this polygon">
             <i class="fa fa-trash"></i>
           </button>
+        </div>
+        <div *ngIf="localCurrentPolygonId === favorite.id" class="current-indicator">
+          <span>Current</span>
         </div>
       </div>
     </div>

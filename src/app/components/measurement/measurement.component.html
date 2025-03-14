@@ -6,30 +6,46 @@
   (close)="toggleMeasurement()"
 >
   <div class="measurement-content" modal-content>
-    <div class="distance-display" *ngIf="measureDistance > 0">
-      <div class="distance-value">
-        <span *ngIf="measureDistance < 1000">{{ measureDistance.toFixed(2) }} m</span>
-        <span *ngIf="measureDistance >= 1000">{{ (measureDistance / 1000).toFixed(2) }} km</span>
+    <!-- Compact Info Bar -->
+    <div class="info-bar">
+      <div class="info-item">
+        <i class="fa fa-info-circle"></i>
+        <span>Click on map to measure distances</span>
+      </div>
+      <div class="info-item points">
+        <i class="fa fa-map-marker-alt"></i>
+        <span>{{ measurePoints.length }} points</span>
       </div>
     </div>
     
-    <div class="measurement-actions">
-      <button 
-        class="btn btn-secondary" 
-        [disabled]="measurePoints.length <= 0" 
-        (click)="undoLastPoint()">
-        Undo Last Point
-      </button>
-      <button 
-        class="btn btn-danger" 
-        [disabled]="measurePoints.length <= 0" 
-        (click)="clearMeasurement()">
-        Clear
-      </button>
+    <!-- Distance Display -->
+    <div class="distance-container">
+      <div class="distance-value">
+        <i class="fa fa-ruler-horizontal"></i>
+        <span *ngIf="measureDistance === 0">No measurement yet</span>
+        <span *ngIf="measureDistance > 0 && measureDistance < 1000">{{ measureDistance.toFixed(2) }} <small>meters</small></span>
+        <span *ngIf="measureDistance >= 1000">{{ (measureDistance / 1000).toFixed(2) }} <small>kilometers</small></span>
+      </div>
     </div>
     
-    <div class="measurement-instructions">
-      <p>Click on the map to add measurement points.</p>
+    <!-- Action Buttons -->
+    <div class="measurement-actions">
+      <button 
+        class="action-button undo-button" 
+        [disabled]="measurePoints.length <= 0" 
+        [class.disabled]="measurePoints.length <= 0"
+        (click)="undoLastPoint()">
+        <i class="fa fa-undo"></i>
+        <span>Undo</span>
+      </button>
+      <button 
+        class="action-button clear-button" 
+        [disabled]="measurePoints.length <= 0" 
+        [class.disabled]="measurePoints.length <= 0"
+        (click)="clearMeasurement()">
+        <i class="fa fa-trash-alt"></i>
+        <span>Clear</span>
+      </button>
     </div>
   </div>
 </app-modal> 
