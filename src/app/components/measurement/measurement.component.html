@@ -1,29 +1,35 @@
 <app-modal
   [isVisible]="isVisible"
-  [title]="'Distance Measurement'"
-  [icon]="'fa-ruler'"
-  [modalType]="'measurement'"
-  (close)="closeModal()"
+  [title]="'Measurement'"
+  [icon]="'ruler'"
+  [modalType]="'tool'"
+  (close)="toggleMeasurement()"
 >
-  <div modal-content>
-    <div class="distance-display">
-      <span class="distance-value">{{ measureDistance | number:'1.2-2' }}</span>
-      <span class="unit">m</span>
-      <span *ngIf="measureDistance >= 1000" class="km-unit">({{ measureDistance / 1000 | number:'1.2-2' }} km)</span>
+  <div class="measurement-content">
+    <div class="distance-display" *ngIf="measureDistance > 0">
+      <div class="distance-value">
+        <span *ngIf="measureDistance < 1000">{{ measureDistance.toFixed(2) }} m</span>
+        <span *ngIf="measureDistance >= 1000">{{ (measureDistance / 1000).toFixed(2) }} km</span>
+      </div>
     </div>
     
-    <div class="action-buttons">
-      <button class="action-button undo" (click)="undoLastMeasurementPoint()" [disabled]="measurePoints.length === 0">
-        <i class="fa fa-undo"></i> Undo
+    <div class="measurement-actions">
+      <button 
+        class="btn btn-secondary" 
+        [disabled]="measurePoints.length <= 0" 
+        (click)="undoLastPoint()">
+        Undo Last Point
       </button>
-      <button class="action-button clear" (click)="clearMeasurement()">
-        <i class="fa fa-trash"></i> Clear
+      <button 
+        class="btn btn-danger" 
+        [disabled]="measurePoints.length <= 0" 
+        (click)="clearMeasurement()">
+        Clear
       </button>
     </div>
     
     <div class="measurement-instructions">
-      <i class="fa fa-info-circle"></i>
-      <span>Click on the map to add measurement points. The distance will be calculated automatically.</span>
+      <p>Click on the map to add measurement points.</p>
     </div>
   </div>
 </app-modal> 

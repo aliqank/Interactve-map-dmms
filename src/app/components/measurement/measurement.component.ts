@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as L from 'leaflet';
 import { MapService } from '../../services/map.service';
@@ -12,13 +12,15 @@ import { ModalComponent } from '../shared/modal/modal.component';
   templateUrl: './measurement.component.html',
   styleUrls: ['./measurement.component.css']
 })
-export class MeasurementComponent implements OnInit, OnDestroy {
-  isVisible = false;
+export class MeasurementComponent implements OnInit, OnDestroy, OnChanges {
+  @Input() isVisible = false;
+  @Input() map!: L.Map;
+  @Output() visibilityChange = new EventEmitter<boolean>();
+  
   measurePoints: L.Layer[] = [];
   measureLine: L.Polyline | null = null;
   measureDistance = 0;
   measureMode = false;
-  private map!: L.Map;
   private mapClickHandler: ((e: L.LeafletMouseEvent) => void) | null = null;
 
   constructor(
@@ -27,7 +29,34 @@ export class MeasurementComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.map = this.mapService.getMap();
+    if (!this.map) {
+      this.map = this.mapService.getMap();
+    }
+    
+    // Initialize with current visibility state
+    this.measureMode = this.isVisible;
+    if (this.measureMode) {
+      this.activateMeasureMode();
+    }
+  }
+  
+  ngOnChanges(changes: SimpleChanges): void {
+    // React to changes in the isVisible input
+    if (changes['isVisible'] && !changes['isVisible'].firstChange) {
+      const currentValue = changes['isVisible'].currentValue;
+      const previousValue = changes['isVisible'].previousValue;
+      
+      if (currentValue !== previousValue) {
+        this.measureMode = currentValue;
+        
+        if (this.measureMode) {
+          this.activateMeasureMode();
+        } else {
+          this.deactivateMeasureMode();
+          this.clearMeasurement();
+        }
+      }
+    }
   }
 
   ngOnDestroy(): void {
@@ -41,6 +70,7 @@ export class MeasurementComponent implements OnInit, OnDestroy {
   toggleMeasurement(): void {
     this.isVisible = !this.isVisible;
     this.measureMode = this.isVisible;
+    this.visibilityChange.emit(this.isVisible);
     
     if (this.measureMode) {
       this.activateMeasureMode();
@@ -161,21 +191,29 @@ export class MeasurementComponent implements OnInit, OnDestroy {
   /**
    * Undo the last measurement point
    */
-  undoLastMeasurementPoint(): void {
-    if (this.measurePoints.length === 0) return;
-    
-    // Remove the last marker
-    const lastMarker = this.measurePoints.pop();
-    if (lastMarker) {
-      this.map.removeLayer(lastMarker);
+  undoLastPoint(): void {
+    if (this.measurePoints.length > 0) {
+      const lastPoint = this.measurePoints.pop();
+      if (lastPoint) {
+        this.map.removeLayer(lastPoint);
+      }
+      this.updateMeasurementLine();
+    }
+  }
+
+  /**
+   * Update the measurement line and recalculate distance
+   */
+  private updateMeasurementLine(): void {
+    // Remove existing line
+    if (this.measureLine) {
+      this.map.removeLayer(this.measureLine);
+      this.measureLine = null;
     }
     
-    // Update or remove the line
+    // Create new line if we have at least 2 points
     if (this.measurePoints.length >= 2) {
       const points = this.measurePoints.map(marker => (marker as L.CircleMarker).getLatLng());
-      if (this.measureLine) {
-        this.map.removeLayer(this.measureLine);
-      }
       this.measureLine = L.polyline(points, {
         color: '#4285F4',
         weight: 3,
@@ -183,12 +221,9 @@ export class MeasurementComponent implements OnInit, OnDestroy {
         lineJoin: 'round',
         lineCap: 'round'
       }).addTo(this.map);
-    } else if (this.measureLine) {
-      this.map.removeLayer(this.measureLine);
-      this.measureLine = null;
     }
     
-    // Recalculate distance
+    // Recalculate total distance
     this.calculateTotalDistance();
   }
 

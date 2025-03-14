@@ -1,74 +1,69 @@
 <div id="map"></div>
 
-<app-sidebar [map]="map" 
-             [apiError]="apiError"
-             (toolSelected)="handleToolSelection($event)"
-             (layerControlToggled)="toggleLayerControl()"
-             (searchControlToggled)="toggleSearchControl()"
-             (measureControlToggled)="toggleMeasureControl()"
-             (geoJsonControlToggled)="toggleGeoJsonControl()"
-             (polygonControlToggled)="togglePolygonControl()"
-             (dataSendingControlToggled)="toggleDataSendingControl()"
-             (settingsControlToggled)="toggleSettingsControl()"
-             (favoritesControlToggled)="toggleFavoritesControl()"
-             (findLocationRequested)="findMyLocation()"></app-sidebar>
+<app-sidebar 
+  [map]="map" 
+  [apiError]="apiError"
+  (layerControlToggled)="toggleLayerControl()"
+  (searchControlToggled)="toggleSearchControl()"
+  (measureControlToggled)="onMeasureControlToggled()"
+  (geoJsonControlToggled)="toggleGeoJsonControl()"
+  (polygonControlToggled)="togglePolygonControl()"
+  (dataSendingControlToggled)="toggleDataSendingControl()"
+  (settingsControlToggled)="toggleSettingsControl()"
+  (favoritesControlToggled)="toggleFavoritesControl()"
+  (findLocationRequested)="findMyLocation()">
+</app-sidebar>
 
 <!-- Measurement Modal Component -->
-<app-measurement></app-measurement>
+<app-measurement 
+  [isVisible]="showMeasurementControl" 
+  [map]="map"
+  (visibilityChange)="showMeasurementControl = $event">
+</app-measurement>
 
-<!-- Control panels will be displayed here but not in a control-panel div -->
+<!-- Layer Control Panel -->
+<app-layer-control
+  [isVisible]="showLayerControl"
+  (visibilityChange)="showLayerControl = $event">
+</app-layer-control>
 
-  
-  <!-- Layer Control Panel -->
-  <app-layer-control *ngIf="showLayerControl"></app-layer-control>
-  
-  <!-- Search Control Panel -->
-  <app-search *ngIf="showSearchControl"></app-search>
-  
-  <!-- GeoJSON Control Panel -->
-  <div *ngIf="showGeoJsonControl" class="modal-panel geojson-modal" #geojsonModal (mousedown)="startModalDrag($event, geojsonModal)" (touchstart)="startModalDrag($event, geojsonModal)">
-    <div class="modal-header">
-      <h3><i class="fa fa-file-code"></i> GeoJSON</h3>
-      <button class="modal-close" (click)="toggleGeoJsonControl()">
-        <i class="fa fa-times"></i>
-      </button>
-    </div>
-    <div class="modal-content">
-      <app-geojson-control [map]="map"></app-geojson-control>
-    </div>
-  </div>
-  
-  <!-- Polygon Control Panel -->
-  <app-polygon-draw
-    [isVisible]="showPolygonControl"
-    [map]="map"
-    (visibilityChange)="togglePolygonControl()">
-  </app-polygon-draw>
-  
-  <!-- Settings Control Panel -->
-  <app-settings
-    [isVisible]="showSettingsControl"
-    [apiSettings]="apiSettings"
-    (visibilityChange)="toggleSettingsControl()"
-    (settingsSaved)="apiSettings = $event">
-  </app-settings>
-  
-  <!-- Favorites Control Panel -->
-  <app-favorites
-    [isVisible]="showFavoritesControl"
-    [favoritePolygons]="favoritePolygons"
-    [currentPolygonId]="currentPolygonId"
-    (visibilityChange)="toggleFavoritesControl()"
-    (loadFavorite)="loadFavoritePolygon($event)"
-    (deleteFavorite)="deleteFavoritePolygon($event)">
-  </app-favorites>
-  
-  <!-- Data Sending Control Panel -->
-  <app-data-sending
-    [isVisible]="showDataSendingControl"
-    [map]="map"
-    [apiSettings]="apiSettings"
-    [apiError]="apiError"
-    (visibilityChange)="toggleDataSendingControl()"
-    (apiErrorChange)="apiError = $event">
-  </app-data-sending>
+<!-- Search Control Panel -->
+<app-search
+  [isVisible]="showSearchControl"
+  (visibilityChange)="showSearchControl = $event">
+</app-search>
+
+<!-- GeoJSON Control Panel -->
+<app-geojson-control
+  [isVisible]="showGeoJsonControl"
+  [map]="map"
+  (visibilityChange)="showGeoJsonControl = $event">
+</app-geojson-control>
+
+<!-- Polygon Control Panel -->
+<app-polygon-draw
+  [isVisible]="showPolygonControl"
+  [map]="map"
+  (visibilityChange)="showPolygonControl = $event">
+</app-polygon-draw>
+
+<!-- Settings Control Panel -->
+<app-settings
+  [isVisible]="showSettingsControl"
+  (visibilityChange)="showSettingsControl = $event">
+</app-settings>
+
+<!-- Favorites Control Panel -->
+<app-favorites
+  [isVisible]="showFavoritesControl"
+  (visibilityChange)="showFavoritesControl = $event">
+</app-favorites>
+
+<!-- Data Sending Control Panel -->
+<app-data-sending
+  [isVisible]="showDataSendingControl"
+  [map]="map"
+  (visibilityChange)="showDataSendingControl = $event">
+</app-data-sending>
+
+<app-toast></app-toast>

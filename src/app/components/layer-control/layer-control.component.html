@@ -1,9 +1,17 @@
-<div class="layer-options">
-  <div class="layer-option" 
-       *ngFor="let layer of availableLayers"
-       [class.active]="selectedLayer === layer"
-       (click)="changeLayer(layer)">
-    <i class="fa" [ngClass]="getLayerIcon(layer)"></i>
-    {{ layer | titlecase }}
+<app-modal 
+  [isVisible]="isVisible" 
+  [title]="'Map Layers'" 
+  [icon]="'layer-group'" 
+  [modalType]="'tool'"
+  (close)="toggleVisibility()">
+  
+  <div class="layer-options">
+    <div class="layer-option" 
+         *ngFor="let layer of availableLayers"
+         [class.active]="selectedLayer === layer"
+         (click)="changeLayer(layer)">
+      <i class="fa" [ngClass]="getLayerIcon(layer)"></i>
+      {{ layer | titlecase }}
+    </div>
   </div>
-</div> 
+</app-modal> 

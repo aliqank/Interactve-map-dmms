@@ -43,14 +43,14 @@ export class AppComponent implements AfterViewInit, OnInit {
   private locationMarker: L.Marker | null = null;
   
   // UI control properties
+  showMeasurementControl = false;
   showLayerControl = false;
   showSearchControl = false;
-  showMeasureControl = false;
   showGeoJsonControl = false;
   showPolygonControl = false;
-  showDataSendingControl = false;
   showSettingsControl = false;
   showFavoritesControl = false;
+  showDataSendingControl = false;
   isSearching = false;
   public dataSendingMode = false;
   
@@ -189,7 +189,7 @@ export class AppComponent implements AfterViewInit, OnInit {
   toggleLayerControl(): void {
     this.showLayerControl = !this.showLayerControl;
     this.showSearchControl = false;
-    this.showMeasureControl = false;
+    this.showMeasurementControl = false;
     this.showGeoJsonControl = false;
     this.showPolygonControl = false;
     this.showDataSendingControl = false;
@@ -199,28 +199,27 @@ export class AppComponent implements AfterViewInit, OnInit {
   toggleSearchControl(): void {
     this.showSearchControl = !this.showSearchControl;
     this.showLayerControl = false;
-    this.showMeasureControl = false;
+    this.showMeasurementControl = false;
     this.showGeoJsonControl = false;
     this.showPolygonControl = false;
     this.showDataSendingControl = false;
     this.showSettingsControl = false;
   }
   
-  toggleMeasureControl(): void {
-    this.showMeasureControl = !this.showMeasureControl;
-    this.showLayerControl = false;
-    this.showSearchControl = false;
-    this.showGeoJsonControl = false;
-    this.showPolygonControl = false;
-    this.showDataSendingControl = false;
-    this.showSettingsControl = false;
+  toggleMeasurementControl(): void {
+    this.showMeasurementControl = !this.showMeasurementControl;
+    
+    // Close other controls when opening this one
+    if (this.showMeasurementControl) {
+      this.closeOtherControls('measurement');
+    }
   }
   
   toggleGeoJsonControl(): void {
     this.showGeoJsonControl = !this.showGeoJsonControl;
     this.showLayerControl = false;
     this.showSearchControl = false;
-    this.showMeasureControl = false;
+    this.showMeasurementControl = false;
     this.showPolygonControl = false;
     this.showDataSendingControl = false;
     this.showSettingsControl = false;
@@ -230,7 +229,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.showPolygonControl = !this.showPolygonControl;
     this.showLayerControl = false;
     this.showSearchControl = false;
-    this.showMeasureControl = false;
+    this.showMeasurementControl = false;
     this.showGeoJsonControl = false;
     this.showDataSendingControl = false;
     this.showSettingsControl = false;
@@ -240,7 +239,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.showDataSendingControl = !this.showDataSendingControl;
     this.showLayerControl = false;
     this.showSearchControl = false;
-    this.showMeasureControl = false;
+    this.showMeasurementControl = false;
     this.showGeoJsonControl = false;
     this.showPolygonControl = false;
     this.showSettingsControl = false;
@@ -253,7 +252,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.showSettingsControl = !this.showSettingsControl;
     this.showLayerControl = false;
     this.showSearchControl = false;
-    this.showMeasureControl = false;
+    this.showMeasurementControl = false;
     this.showGeoJsonControl = false;
     this.showPolygonControl = false;
     this.showDataSendingControl = false;
@@ -264,7 +263,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.showFavoritesControl = !this.showFavoritesControl;
     this.showLayerControl = false;
     this.showSearchControl = false;
-    this.showMeasureControl = false;
+    this.showMeasurementControl = false;
     this.showGeoJsonControl = false;
     this.showPolygonControl = false;
     this.showDataSendingControl = false;
@@ -291,7 +290,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     // Hide all control panels
     this.showLayerControl = false;
     this.showSearchControl = false;
-    this.showMeasureControl = false;
+    this.showMeasurementControl = false;
     this.showGeoJsonControl = false;
     this.showPolygonControl = false;
     this.showDataSendingControl = false;
@@ -312,7 +311,7 @@ export class AppComponent implements AfterViewInit, OnInit {
         this.showSearchControl = true;
         break;
       case 'measure':
-        this.showMeasureControl = true;
+        this.showMeasurementControl = true;
         break;
       case 'geojson':
         this.showGeoJsonControl = true;
@@ -623,5 +622,27 @@ export class AppComponent implements AfterViewInit, OnInit {
     // Simply turn off the data sending control
     // The actual cancellation is now handled by the DataSendingComponent
     this.showDataSendingControl = false;
+  }
+
+  /**
+   * Close all controls except the specified one
+   * @param exceptControl The control to keep open
+   */
+  private closeOtherControls(exceptControl: string): void {
+    if (exceptControl !== 'measurement') this.showMeasurementControl = false;
+    if (exceptControl !== 'layer') this.showLayerControl = false;
+    if (exceptControl !== 'search') this.showSearchControl = false;
+    if (exceptControl !== 'geojson') this.showGeoJsonControl = false;
+    if (exceptControl !== 'polygon') this.showPolygonControl = false;
+    if (exceptControl !== 'settings') this.showSettingsControl = false;
+    if (exceptControl !== 'favorites') this.showFavoritesControl = false;
+    if (exceptControl !== 'dataSending') this.showDataSendingControl = false;
+  }
+
+  /**
+   * Handle measurement control toggle from sidebar
+   */
+  onMeasureControlToggled(): void {
+    this.toggleMeasurementControl();
   }
 }

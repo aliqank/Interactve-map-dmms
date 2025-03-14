@@ -38,7 +38,7 @@ interface SidebarSettings {
 export interface MapControls {
   showLayerControl: boolean;
   showSearchControl: boolean;
-  showMeasureControl: boolean;
+  showMeasurementControl: boolean;
   showGeoJsonControl: boolean;
   showPolygonControl: boolean;
   showDataSendingControl: boolean;
@@ -104,7 +104,7 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
   mapControls = {
     showLayerControl: false,
     showSearchControl: false,
-    showMeasureControl: false,
+    showMeasurementControl: false,
     showGeoJsonControl: false,
     showPolygonControl: false,
     showDataSendingControl: false,
