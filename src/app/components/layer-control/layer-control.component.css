@@ -1,0 +1,37 @@
+.layer-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.layer-option {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background-color: #f8f8f8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  font-size: 13px;
+}
+
+.layer-option:hover {
+  background-color: #f0f4ff;
+}
+
+.layer-option.active {
+  background-color: #e0e8ff;
+  color: #4d7cfe;
+  font-weight: 500;
+}
+
+.layer-option i {
+  width: 16px;
+  text-align: center;
+  color: #666;
+}
+
+.layer-option.active i {
+  color: #4d7cfe;
+} 

@@ -1,0 +1,151 @@
+.search-section {
+  margin-bottom: 16px;
+}
+
+.setting-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.setting-label i {
+  color: #4d7cfe;
+  width: 16px;
+  text-align: center;
+}
+
+.setting-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  background-color: #fff;
+}
+
+.setting-input:focus {
+  border-color: #4d7cfe;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(77, 124, 254, 0.2);
+}
+
+.search-input-wrapper,
+.coordinates-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input-wrapper .search-indicator {
+  position: absolute;
+  right: 10px;
+  color: #999;
+  font-size: 14px;
+}
+
+.search-input-wrapper .clear-button,
+.coordinates-input-wrapper .clear-button {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+}
+
+.search-results {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 8px;
+  border-radius: 6px;
+  border: 1px solid #eee;
+}
+
+.search-result-item {
+  padding: 8px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background-color: #f0f4ff;
+}
+
+.result-icon {
+  color: #ff4d4f;
+  font-size: 12px;
+}
+
+.coordinates-search-wrapper {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.coordinates-input-wrapper {
+  flex: 1;
+}
+
+.search-go-button {
+  padding: 8px 12px;
+  background-color: #4d7cfe;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.search-go-button:hover {
+  background-color: #3a6efd;
+  transform: translateY(-1px);
+}
+
+.search-go-button:active {
+  transform: translateY(0);
+}
+
+.find-location-button {
+  width: 100%;
+  padding: 8px 12px;
+  background-color: #40c057;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.find-location-button:hover {
+  background-color: #37b24d;
+  transform: translateY(-1px);
+}
+
+.find-location-button:active {
+  transform: translateY(0);
+} 

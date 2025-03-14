@@ -1,0 +1,62 @@
+<!-- Location search -->
+<div class="search-section">
+  <div class="setting-label">
+    <i class="fa fa-map-marker-alt"></i> Find location
+  </div>
+  <div class="search-input-wrapper">
+    <input type="text" 
+           [(ngModel)]="searchQuery" 
+           (input)="onSearchInput()" 
+           class="setting-input"
+           placeholder="Enter location name">
+    <div *ngIf="isSearching" class="search-indicator">
+      <i class="fa fa-spinner fa-spin"></i>
+    </div>
+    <button *ngIf="searchQuery && !isSearching" 
+            (click)="clearSearch()" 
+            class="clear-button" 
+            title="Clear search">
+      <i class="fa fa-times-circle"></i>
+    </button>
+  </div>
+  
+  <div *ngIf="searchResults.length > 0" class="search-results">
+    <div *ngFor="let result of searchResults" 
+         class="search-result-item"
+         (click)="goToLocation(result)">
+      <i class="fa fa-map-pin result-icon"></i>
+      <span class="result-text">{{ result.display_name | slice:0:40 }}{{ result.display_name.length > 40 ? '...' : '' }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Coordinates search -->
+<div class="search-section">
+  <div class="setting-label">
+    <i class="fa fa-compass"></i> Go to coordinates
+  </div>
+  <div class="coordinates-search-wrapper">
+    <div class="coordinates-input-wrapper">
+      <input type="text" 
+             [(ngModel)]="coordinatesQuery" 
+             class="setting-input"
+             placeholder="Lat, Lng (e.g. 51.5, -0.09)">
+      <button *ngIf="coordinatesQuery" 
+              (click)="clearCoordinates()" 
+              class="clear-button" 
+              title="Clear coordinates">
+        <i class="fa fa-times-circle"></i>
+      </button>
+    </div>
+    <button (click)="searchByCoordinates()" class="search-go-button">
+      <i class="fa fa-location-arrow"></i> Go
+    </button>
+  </div>
+</div>
+
+<!-- Find my location button -->
+<div class="search-section">
+  <button (click)="findMyLocation()" class="find-location-button">
+    <i class="fa fa-crosshairs"></i> Find My Location
+  </button>
+</div> 

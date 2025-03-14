@@ -1,0 +1,17 @@
+<div *ngIf="isVisible" class="modal-container" [style.width]="width" [style.height]="height">
+  <div class="modal-header" (mousedown)="startDrag($event)" (touchstart)="startDrag($event)">
+    <h3>
+      <i *ngIf="icon" class="fa {{ icon }}"></i>
+      {{ title }}
+    </h3>
+    <button class="modal-close" (click)="closeModal()">
+      <i class="fa fa-times"></i>
+    </button>
+  </div>
+  <div class="modal-content">
+    <ng-content select="[modal-content]"></ng-content>
+  </div>
+  <div *ngIf="showFooter" class="modal-footer">
+    <ng-content select="[modal-footer]"></ng-content>
+  </div>
+</div> 

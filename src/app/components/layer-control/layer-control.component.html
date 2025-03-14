@@ -1,0 +1,9 @@
+<div class="layer-options">
+  <div class="layer-option" 
+       *ngFor="let layer of availableLayers"
+       [class.active]="selectedLayer === layer"
+       (click)="changeLayer(layer)">
+    <i class="fa" [ngClass]="getLayerIcon(layer)"></i>
+    {{ layer | titlecase }}
+  </div>
+</div> 

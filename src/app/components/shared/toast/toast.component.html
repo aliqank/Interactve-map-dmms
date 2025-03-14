@@ -1,0 +1,14 @@
+<div 
+  *ngIf="visible"
+  [@toastAnimation]="visible ? 'visible' : 'void'"
+  class="toast-container"
+  [ngClass]="[type, position]"
+>
+  <div class="toast-content">
+    <i class="fa {{ iconClass }}"></i>
+    <span class="toast-message">{{ message }}</span>
+    <button class="toast-close" (click)="hideToast()">
+      <i class="fa fa-times"></i>
+    </button>
+  </div>
+</div> 
