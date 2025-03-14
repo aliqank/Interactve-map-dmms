@@ -6,46 +6,109 @@
   (close)="togglePolygonDrawing()"
 >
   <div modal-content>
-    <div *ngIf="!showPolygonNameInput">
+    <div *ngIf="!showPolygonNameInput" class="polygon-drawing-container">
       <div class="polygon-instructions">
         <i class="fa fa-info-circle"></i>
-        <span>Click on the map to add points. You need at least 3 points to create a polygon.</span>
+        <div class="instruction-content">
+          <p class="instruction-title">How to draw a polygon:</p>
+          <ol class="instruction-steps">
+            <li>Click on the map to add points</li>
+            <li>Points will be automatically connected with lines</li>
+            <li>Connect at least 3 points to form a polygon</li>
+            <li>Click "Finish" when your polygon is complete</li>
+          </ol>
+        </div>
       </div>
       
-      <div class="polygon-points-counter">
-        <span class="counter-label">Points:</span>
-        <span class="counter-value">{{ tempPolygonPoints.length }}</span>
-        <span class="counter-min">(min 3)</span>
+      <div class="polygon-progress">
+        <div class="progress-bar-container">
+          <div class="progress-bar" [style.width]="(tempPolygonPoints.length >= 3 ? 100 : tempPolygonPoints.length * 33.33) + '%'"></div>
+        </div>
+        <div class="polygon-points-counter">
+          <span class="counter-label">Points:</span>
+          <span class="counter-value">{{ tempPolygonPoints.length }}</span>
+          <span class="counter-min">(min 3)</span>
+          <span *ngIf="tempPolygonPoints.length >= 2" class="connection-info">
+            <i class="fa fa-link"></i> Connected
+          </span>
+        </div>
       </div>
       
       <div class="polygon-actions">
         <button (click)="finishPolygonDrawing()" 
                 [disabled]="tempPolygonPoints.length < 3"
-                class="polygon-action-button finish-button">
+                class="polygon-action-button finish-button"
+                title="Complete polygon drawing">
           <i class="fa fa-check"></i> Finish
         </button>
-        <button (click)="cancelPolygonDrawing()" class="polygon-action-button cancel-button">
+        <button (click)="clearTempPolygon()" 
+                [disabled]="tempPolygonPoints.length === 0"
+                class="polygon-action-button clear-button"
+                title="Clear all points">
+          <i class="fa fa-trash"></i> Clear
+        </button>
+        <button (click)="cancelPolygonDrawing()" 
+                class="polygon-action-button cancel-button"
+                title="Cancel polygon drawing">
           <i class="fa fa-times"></i> Cancel
         </button>
+      </div>
+      
+      <div *ngIf="tempPolygonPoints.length > 0" class="points-list-container">
+        <div class="points-list-header">
+          <span>Point Coordinates</span>
+          <button class="collapse-button" (click)="toggleCoordinatesList()" title="Toggle coordinates list">
+            <i class="fa" [ngClass]="isCoordinatesListCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
+          </button>
+        </div>
+        <div class="points-list" [ngClass]="{'collapsed': isCoordinatesListCollapsed}">
+          <div *ngFor="let point of tempPolygonPoints; let i = index" class="point-item">
+            <span class="point-index">{{ i + 1 }}</span>
+            <span class="point-coords">{{ point.lat.toFixed(6) }}, {{ point.lng.toFixed(6) }}</span>
+            <span *ngIf="i < tempPolygonPoints.length - 1" class="connection-indicator">
+              <i class="fa fa-arrow-down"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <div *ngIf="tempPolygonPoints.length >= 2 && tempPolygonPoints.length < 3" class="polygon-hint">
+        <i class="fa fa-lightbulb-o"></i>
+        <span>Add one more point to create a polygon</span>
       </div>
     </div>
     
     <div *ngIf="showPolygonNameInput" class="polygon-name-form">
-      <div class="setting-label">
-        <i class="fa fa-tag"></i> Polygon Name
+      <div class="polygon-complete-message">
+        <i class="fa fa-check-circle"></i>
+        <span>Polygon created successfully!</span>
       </div>
-      <div class="polygon-name-input-wrapper">
-        <input type="text" 
-               [(ngModel)]="newPolygonName" 
-               placeholder="Enter polygon name"
-               class="setting-input"
-               autofocus>
+      
+      <div class="setting-group">
+        <label for="polygonName" class="setting-label">
+          <i class="fa fa-tag"></i> Polygon Name
+        </label>
+        <div class="setting-input-wrapper">
+          <input type="text" 
+                id="polygonName"
+                [(ngModel)]="newPolygonName" 
+                placeholder="Enter a descriptive name"
+                class="setting-input"
+                autofocus>
+        </div>
       </div>
-      <button (click)="savePolygonAsFavorite()" 
-              [disabled]="!newPolygonName.trim()"
-              class="save-polygon-button">
-        <i class="fa fa-save"></i> Save Polygon
-      </button>
+      
+      <div class="polygon-save-actions">
+        <button (click)="savePolygonAsFavorite()" 
+                [disabled]="!newPolygonName.trim()"
+                class="save-polygon-button">
+          <i class="fa fa-save"></i> Save Polygon
+        </button>
+        <button (click)="cancelPolygonDrawing()" 
+                class="discard-polygon-button">
+          <i class="fa fa-times"></i> Discard
+        </button>
+      </div>
     </div>
   </div>
 </app-modal> 

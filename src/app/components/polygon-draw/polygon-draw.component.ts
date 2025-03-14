@@ -25,11 +25,79 @@ export class PolygonDrawComponent implements OnInit, OnDestroy, OnChanges {
   tempPolygonPoints: L.LatLng[] = [];
   private tempPolygonMarkers: L.Marker[] = [];
   private tempPolygon: L.Polygon | null = null;
+  private tempPolyline: L.Polyline | null = null;
+  private closingLine: L.Polyline | null = null;
+  private mouseMarker: L.Marker | null = null;
   private drawPolygonMode = false;
   private mapClickHandler: ((e: L.LeafletMouseEvent) => void) | null = null;
+  private mapMoveHandler: ((e: L.LeafletMouseEvent) => void) | null = null;
   private favoritePolygons: FavoritePolygon[] = [];
   private currentPolygonId: string | null = null;
   private coordinatesInput: { lat: number; lng: number; }[] = [];
+  isCoordinatesListCollapsed = false;
+
+  // Custom marker options for better visual feedback
+  private readonly markerOptions = {
+    icon: L.divIcon({
+      className: 'custom-polygon-marker',
+      html: '<div class="marker-point"></div>',
+      iconSize: [12, 12],
+      iconAnchor: [6, 6]
+    }),
+    draggable: false
+  };
+
+  // First and last marker options (different styling)
+  private readonly firstMarkerOptions = {
+    icon: L.divIcon({
+      className: 'custom-polygon-marker',
+      html: '<div class="marker-point first-point"></div>',
+      iconSize: [16, 16],
+      iconAnchor: [8, 8]
+    }),
+    draggable: false
+  };
+
+  // Mouse marker options
+  private readonly mouseMarkerOptions = {
+    icon: L.divIcon({
+      className: 'custom-polygon-marker',
+      html: '<div class="marker-point mouse-point"></div>',
+      iconSize: [8, 8],
+      iconAnchor: [4, 4]
+    }),
+    draggable: false,
+    interactive: false
+  };
+
+  // Custom polygon style options
+  private readonly polygonOptions = {
+    color: '#4285F4',
+    weight: 3,
+    opacity: 0.8,
+    fillColor: '#4285F4',
+    fillOpacity: 0.2,
+    dashArray: '5, 5'
+  };
+
+  // Custom polyline style options
+  private readonly polylineOptions = {
+    color: '#4285F4',
+    weight: 3,
+    opacity: 0.9,
+    lineCap: 'round' as L.LineCapShape,
+    lineJoin: 'round' as L.LineJoinShape
+  };
+
+  // Closing line style options
+  private readonly closingLineOptions = {
+    color: '#34A853',
+    weight: 2,
+    opacity: 0.7,
+    dashArray: '5, 5',
+    lineCap: 'round' as L.LineCapShape,
+    lineJoin: 'round' as L.LineJoinShape
+  };
 
   constructor(
     private mapService: MapService,
@@ -101,14 +169,24 @@ export class PolygonDrawComponent implements OnInit, OnDestroy, OnChanges {
    */
   togglePolygonDrawing(): void {
     this.isVisible = !this.isVisible;
-    this.drawPolygonMode = this.isVisible;
     this.visibilityChange.emit(this.isVisible);
     
-    if (this.drawPolygonMode) {
-      this.activatePolygonDrawMode();
-    } else {
-      this.deactivatePolygonDrawMode();
+    if (this.isVisible) {
+      // Reset state when opening
+      this.tempPolygonPoints = [];
       this.clearTempPolygon();
+      this.showPolygonNameInput = false;
+      this.newPolygonName = '';
+      this.isCoordinatesListCollapsed = false;
+      
+      // Activate drawing mode
+      this.activatePolygonDrawMode();
+      
+      // Show a toast message with instructions
+      this.toastService.info('Click on the map to add polygon points');
+    } else {
+      // Deactivate drawing mode when closing
+      this.deactivatePolygonDrawMode();
     }
   }
 
@@ -116,34 +194,131 @@ export class PolygonDrawComponent implements OnInit, OnDestroy, OnChanges {
    * Activate polygon drawing mode
    */
   private activatePolygonDrawMode(): void {
-    // Reset state
-    this.tempPolygonPoints = [];
-    this.clearTempPolygon();
-    this.showPolygonNameInput = false;
+    this.drawPolygonMode = true;
+    this.mapClickHandler = this.handleMapClick.bind(this);
+    this.mapMoveHandler = this.handleMapMouseMove.bind(this);
+    this.map.on('click', this.mapClickHandler);
+    this.map.on('mousemove', this.mapMoveHandler);
     
-    // Create a map click handler
-    this.mapClickHandler = (e: L.LeafletMouseEvent) => this.handleMapClick(e);
-    
-    // Add the click handler to the map
-    if (this.map && this.mapClickHandler) {
-      this.map.on('click', this.mapClickHandler);
+    // Add custom CSS for markers
+    if (!document.getElementById('polygon-marker-style')) {
+      const style = document.createElement('style');
+      style.id = 'polygon-marker-style';
+      style.textContent = `
+        .custom-polygon-marker {
+          background: transparent;
+        }
+        .marker-point {
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          background-color: #4285F4;
+          border: 2px solid white;
+          box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+          transition: transform 0.2s ease;
+        }
+        .marker-point:hover {
+          transform: scale(1.2);
+        }
+        .first-point {
+          width: 16px;
+          height: 16px;
+          background-color: #34A853;
+          border: 3px solid white;
+          animation: pulse-green 2s infinite;
+        }
+        .mouse-point {
+          width: 8px;
+          height: 8px;
+          background-color: rgba(66, 133, 244, 0.5);
+          border: 1px solid white;
+          box-shadow: none;
+        }
+        @keyframes pulse-green {
+          0% {
+            box-shadow: 0 0 0 0 rgba(52, 168, 83, 0.7);
+          }
+          70% {
+            box-shadow: 0 0 0 10px rgba(52, 168, 83, 0);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(52, 168, 83, 0);
+          }
+        }
+      `;
+      document.head.appendChild(style);
     }
     
-    // Show a toast message
-    this.toastService.info('Polygon drawing mode activated. Click on the map to add points.');
+    // Change cursor to indicate drawing mode
+    this.map.getContainer().style.cursor = 'crosshair';
+    
+    // Create mouse marker
+    this.mouseMarker = L.marker([0, 0], this.mouseMarkerOptions).addTo(this.map);
   }
 
   /**
    * Deactivate polygon drawing mode
    */
   private deactivatePolygonDrawMode(): void {
-    // Remove the click handler from the map
-    if (this.map && this.mapClickHandler) {
+    this.drawPolygonMode = false;
+    if (this.mapClickHandler) {
       this.map.off('click', this.mapClickHandler);
       this.mapClickHandler = null;
     }
     
-    this.drawPolygonMode = false;
+    if (this.mapMoveHandler) {
+      this.map.off('mousemove', this.mapMoveHandler);
+      this.mapMoveHandler = null;
+    }
+    
+    // Remove mouse marker
+    if (this.mouseMarker) {
+      this.map.removeLayer(this.mouseMarker);
+      this.mouseMarker = null;
+    }
+    
+    // Remove closing line
+    if (this.closingLine) {
+      this.map.removeLayer(this.closingLine);
+      this.closingLine = null;
+    }
+    
+    // Reset cursor
+    this.map.getContainer().style.cursor = '';
+  }
+
+  /**
+   * Handle mouse movement to show potential connections
+   */
+  private handleMapMouseMove(e: L.LeafletMouseEvent): void {
+    if (!this.drawPolygonMode || !this.mouseMarker) return;
+    
+    // Update mouse marker position
+    this.mouseMarker.setLatLng(e.latlng);
+    
+    // If we have at least 2 points, show the closing line
+    if (this.tempPolygonPoints.length >= 2) {
+      this.updateClosingLine(e.latlng);
+    }
+  }
+
+  /**
+   * Update the closing line that shows how the polygon would be completed
+   */
+  private updateClosingLine(currentMousePos: L.LatLng): void {
+    // Remove existing closing line
+    if (this.closingLine) {
+      this.map.removeLayer(this.closingLine);
+    }
+    
+    // Create a line from the last point to the mouse position and back to the first point
+    const linePoints = [
+      this.tempPolygonPoints[this.tempPolygonPoints.length - 1],
+      currentMousePos,
+      this.tempPolygonPoints[0]
+    ];
+    
+    this.closingLine = L.polyline(linePoints, this.closingLineOptions).addTo(this.map);
   }
 
   /**
@@ -151,53 +326,117 @@ export class PolygonDrawComponent implements OnInit, OnDestroy, OnChanges {
    * @param e The click event
    */
   private handleMapClick(e: L.LeafletMouseEvent): void {
-    if (!this.drawPolygonMode) return;
+    const clickedPoint = e.latlng;
+    this.tempPolygonPoints.push(clickedPoint);
     
-    const lat = e.latlng.lat;
-    const lng = e.latlng.lng;
+    // Create marker with custom icon - use special styling for first point
+    const isFirstPoint = this.tempPolygonPoints.length === 1;
+    const marker = L.marker(clickedPoint, 
+      isFirstPoint ? this.firstMarkerOptions : this.markerOptions
+    ).addTo(this.map);
     
-    // Add the point to the polygon points array
-    this.tempPolygonPoints.push(e.latlng);
-    
-    // Create marker at click location
-    const marker = L.marker([lat, lng], {
-      icon: this.mapService.getPolygonIcon()
-    }).addTo(this.map);
+    // Add tooltip to markers
+    if (isFirstPoint) {
+      marker.bindTooltip('Starting point', { permanent: false, direction: 'top' });
+    } else {
+      marker.bindTooltip(`Point ${this.tempPolygonPoints.length}`, { permanent: false });
+    }
     
     this.tempPolygonMarkers.push(marker);
     
-    // Update the polygon visualization
+    // Add animation effect to the marker
+    const markerElement = marker.getElement();
+    if (markerElement) {
+      markerElement.style.animation = isFirstPoint ? '' : 'pulse 0.5s';
+    }
+    
+    // Update the visualization
     this.updateTempPolygon();
+    this.updateConnectingLines();
+  }
+
+  /**
+   * Update the connecting lines between points
+   */
+  private updateConnectingLines(): void {
+    // Remove existing polyline if it exists
+    if (this.tempPolyline) {
+      this.map.removeLayer(this.tempPolyline);
+    }
+    
+    // Create new polyline if we have at least 2 points
+    if (this.tempPolygonPoints.length >= 2) {
+      this.tempPolyline = L.polyline(this.tempPolygonPoints, this.polylineOptions).addTo(this.map);
+      
+      // Add arrow decorations to show direction
+      if (this.tempPolygonPoints.length >= 3) {
+        // Add directional arrows or decorations if needed
+        // This would require additional plugins or custom implementation
+      }
+    }
   }
 
   /**
    * Clear temporary polygon
    */
   clearTempPolygon(): void {
+    // Remove all markers
+    this.tempPolygonMarkers.forEach(marker => {
+      this.map.removeLayer(marker);
+    });
+    this.tempPolygonMarkers = [];
+    
+    // Remove polygon if it exists
     if (this.tempPolygon) {
       this.map.removeLayer(this.tempPolygon);
       this.tempPolygon = null;
     }
-    this.tempPolygonMarkers.forEach(marker => this.map.removeLayer(marker));
-    this.tempPolygonMarkers = [];
+    
+    // Remove polyline if it exists
+    if (this.tempPolyline) {
+      this.map.removeLayer(this.tempPolyline);
+      this.tempPolyline = null;
+    }
+    
+    // Remove closing line if it exists
+    if (this.closingLine) {
+      this.map.removeLayer(this.closingLine);
+      this.closingLine = null;
+    }
+    
+    // Clear points array
     this.tempPolygonPoints = [];
+    
+    // Show toast notification
+    this.toastService.info('Polygon points cleared');
   }
 
   /**
    * Update temporary polygon visualization
    */
   private updateTempPolygon(): void {
-    if (this.tempPolygonPoints.length < 2) return;
-
+    // Remove existing polygon if it exists
     if (this.tempPolygon) {
       this.map.removeLayer(this.tempPolygon);
     }
-
-    this.tempPolygon = L.polygon(this.tempPolygonPoints, {
-      color: '#4263eb',
-      weight: 2,
-      fillOpacity: 0.2
-    }).addTo(this.map);
+    
+    // Create new polygon if we have at least 3 points
+    if (this.tempPolygonPoints.length >= 3) {
+      this.tempPolygon = L.polygon(this.tempPolygonPoints, this.polygonOptions).addTo(this.map);
+      
+      // Add hover effect to the polygon
+      this.tempPolygon.on('mouseover', () => {
+        if (this.tempPolygon) {
+          this.tempPolygon.setStyle({ fillOpacity: 0.3, weight: 4 });
+        }
+      });
+      
+      this.tempPolygon.on('mouseout', () => {
+        if (this.tempPolygon) {
+          this.tempPolygon.setStyle({ fillOpacity: 0.2, weight: 3 });
+        }
+      });
+    }
   }
 
   /**
@@ -333,5 +572,10 @@ export class PolygonDrawComponent implements OnInit, OnDestroy, OnChanges {
       // Otherwise close the modal completely
       this.togglePolygonDrawing();
     }
+  }
+
+  // Toggle coordinates list collapse state
+  toggleCoordinatesList(): void {
+    this.isCoordinatesListCollapsed = !this.isCoordinatesListCollapsed;
   }
 } 
