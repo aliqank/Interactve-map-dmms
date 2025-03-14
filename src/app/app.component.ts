@@ -42,9 +42,6 @@ import { MapService } from './services/map.service';
 export class AppComponent implements AfterViewInit, OnInit {
   public map!: L.Map;
   private locationMarker: L.Marker | null = null;
-  public measurePoints: L.Layer[] = [];
-  private measureLine: L.Polyline | null = null;
-  private measureMode = false;
   private drawPolygonMode = false;
   public tempPolygonPoints: L.LatLng[] = [];
   private tempPolygonMarkers: L.Marker[] = [];
@@ -59,7 +56,6 @@ export class AppComponent implements AfterViewInit, OnInit {
   showDataSendingControl = false;
   showSettingsControl = false;
   showFavoritesControl = false;
-  measureDistance = 0;
   isSearching = false;
   public dataSendingMode = false;
   
@@ -217,21 +213,6 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.showSettingsControl = false;
   }
   
-  toggleMeasureControl(): void {
-    this.showMeasureControl = !this.showMeasureControl;
-    this.showLayerControl = false;
-    this.showSearchControl = false;
-    this.showGeoJsonControl = false;
-    this.showPolygonControl = false;
-    this.showDataSendingControl = false;
-    this.showSettingsControl = false;
-    this.measureMode = this.showMeasureControl;
-    
-    if (!this.measureMode) {
-      this.clearMeasurement();
-    }
-  }
-  
   toggleGeoJsonControl(): void {
     this.showGeoJsonControl = !this.showGeoJsonControl;
     this.showLayerControl = false;
@@ -241,10 +222,6 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.showDataSendingControl = false;
     this.showSettingsControl = false;
     
-    if (this.measureMode) {
-      this.measureMode = false;
-      this.clearMeasurement();
-    }
     if (this.drawPolygonMode) {
       this.cancelPolygonDrawing();
     }
@@ -315,7 +292,6 @@ export class AppComponent implements AfterViewInit, OnInit {
     console.log('Tool selected:', toolId);
     
     // Reset all active modes
-    this.measureMode = false;
     this.drawPolygonMode = false;
     this.dataSendingMode = false;
     
@@ -597,108 +573,6 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.map.flyToBounds(polygon.getBounds());
   }
 
-  private handleMapClickForMeasurement(e: L.LeafletMouseEvent): void {
-    if (!this.measureMode) return;
-    
-    const lat = e.latlng.lat;
-    const lng = e.latlng.lng;
-    
-    // Create a custom green circular marker for measurement points
-    const circleMarker = L.circleMarker([lat, lng], {
-      radius: 8,
-      fillColor: '#4CAF50',
-      color: '#fff',
-      weight: 2,
-      opacity: 1,
-      fillOpacity: 1
-    }).addTo(this.map);
-    
-    this.measurePoints.push(circleMarker);
-    
-    // If we have at least 2 points, draw/update the line
-    if (this.measurePoints.length >= 2) {
-      const points = this.measurePoints.map(marker => (marker as L.CircleMarker).getLatLng());
-      
-      if (this.measureLine) {
-        this.map.removeLayer(this.measureLine);
-      }
-      
-      this.measureLine = L.polyline(points, {
-        color: '#4285F4',
-        weight: 3,
-        opacity: 0.8,
-        lineJoin: 'round',
-        lineCap: 'round'
-      }).addTo(this.map);
-      
-      // Calculate total distance
-      this.calculateTotalDistance();
-    }
-  }
-
-  clearMeasurement(): void {
-    // Remove all measurement markers
-    this.measurePoints.forEach(marker => {
-      this.map.removeLayer(marker);
-    });
-    
-    // Remove the measurement line
-    if (this.measureLine) {
-      this.map.removeLayer(this.measureLine);
-      this.measureLine = null;
-    }
-    
-    this.measurePoints = [];
-    this.measureDistance = 0;
-  }
-
-  calculateTotalDistance(): void {
-    if (this.measurePoints.length < 2) {
-      this.measureDistance = 0;
-      return;
-    }
-    
-    let totalDistance = 0;
-    for (let i = 0; i < this.measurePoints.length - 1; i++) {
-      const point1 = (this.measurePoints[i] as L.CircleMarker).getLatLng();
-      const point2 = (this.measurePoints[i + 1] as L.CircleMarker).getLatLng();
-      totalDistance += point1.distanceTo(point2);
-    }
-    
-    this.measureDistance = totalDistance;
-  }
-
-  undoLastMeasurementPoint(): void {
-    if (this.measurePoints.length === 0) return;
-    
-    // Remove the last marker
-    const lastMarker = this.measurePoints.pop();
-    if (lastMarker) {
-      this.map.removeLayer(lastMarker);
-    }
-    
-    // Update or remove the line
-    if (this.measurePoints.length >= 2) {
-      const points = this.measurePoints.map(marker => (marker as L.CircleMarker).getLatLng());
-      if (this.measureLine) {
-        this.map.removeLayer(this.measureLine);
-      }
-      this.measureLine = L.polyline(points, {
-        color: '#4285F4',
-        weight: 3,
-        opacity: 0.8,
-        lineJoin: 'round',
-        lineCap: 'round'
-      }).addTo(this.map);
-    } else if (this.measureLine) {
-      this.map.removeLayer(this.measureLine);
-      this.measureLine = null;
-    }
-    
-    // Recalculate distance
-    this.calculateTotalDistance();
-  }
-
   private initializeMap(): void {
     // Get bounds from coordinates
     const bounds = L.latLngBounds(this.coordinates);
@@ -708,12 +582,6 @@ export class AppComponent implements AfterViewInit, OnInit {
     
     // Add click event listener to display coordinates and send to API
     this.map.on('click', (e: L.LeafletMouseEvent) => {
-      // If in measure mode, handle measurement
-      if (this.measureMode) {
-        this.handleMapClickForMeasurement(e);
-        return;
-      }
-      
       // If in polygon drawing mode, handle polygon point addition
       if (this.drawPolygonMode) {
         this.handleMapClickForPolygon(e);

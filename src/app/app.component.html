@@ -14,14 +14,7 @@
              (findLocationRequested)="findMyLocation()"></app-sidebar>
 
 <!-- Measurement Modal Component -->
-<app-measurement-modal
-  [isVisible]="showMeasureControl"
-  [distance]="measureDistance"
-  [canUndo]="measurePoints.length > 0"
-  (close)="toggleMeasureControl()"
-  (clear)="clearMeasurement()"
-  (undo)="undoLastMeasurementPoint()">
-</app-measurement-modal>
+<app-measurement></app-measurement>
 
 <!-- Control panels will be displayed here but not in a control-panel div -->
 
