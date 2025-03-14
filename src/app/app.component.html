@@ -189,46 +189,12 @@
   </div>
   
   <!-- Settings Control Panel -->
-  <div *ngIf="showSettingsControl" class="modal-panel settings-modal" #settingsModal (mousedown)="startModalDrag($event, settingsModal)" (touchstart)="startModalDrag($event, settingsModal)">
-    <div class="modal-header">
-      <h3><i class="fa fa-cog"></i> API Settings</h3>
-      <button class="modal-close" (click)="toggleSettingsControl()">
-        <i class="fa fa-times"></i>
-      </button>
-    </div>
-    <div class="modal-content">
-      <div class="settings-form">
-        <div class="form-group">
-          <div class="setting-label">
-            <i class="fa fa-link"></i> API URL
-          </div>
-          <input type="text" [(ngModel)]="apiSettings.apiUrl" 
-                 class="setting-input" placeholder="Enter API endpoint">
-        </div>
-        
-        <div class="form-group">
-          <div class="setting-label">
-            <i class="fa fa-key"></i> Bearer ID
-          </div>
-          <input type="text" [(ngModel)]="apiSettings.bearerId" 
-                 class="setting-input" placeholder="Enter bearer ID">
-        </div>
-        
-        <div class="form-group">
-          <div class="setting-label">
-            <i class="fa fa-tag"></i> Tracker ID
-          </div>
-          <input type="text" [(ngModel)]="apiSettings.trackerId" 
-                 class="setting-input" placeholder="Enter tracker ID">
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button (click)="saveSettingsModal()" class="save-settings-button">
-        <i class="fa fa-save"></i> Save Settings
-      </button>
-    </div>
-  </div>
+  <app-settings
+    [isVisible]="showSettingsControl"
+    [apiSettings]="apiSettings"
+    (visibilityChange)="toggleSettingsControl()"
+    (settingsSaved)="apiSettings = $event">
+  </app-settings>
   
   <!-- Favorites Control Panel -->
   <app-favorites

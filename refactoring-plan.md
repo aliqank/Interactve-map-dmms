@@ -103,7 +103,7 @@
 8. ✅ Create the MeasurementComponent
 9. ✅ Create the PolygonDrawComponent
 10. ✅ Create the FavoritesComponent
-11. ☐ Create the SettingsComponent
+11. ✅ Create the SettingsComponent
 12. ☐ Create the DataSendingComponent
 13. ☐ Update the AppComponent to use all the new components
 14. ☐ Clean up CSS and ensure consistent styling

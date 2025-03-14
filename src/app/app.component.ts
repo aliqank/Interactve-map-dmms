@@ -13,7 +13,8 @@ import { SearchComponent } from './components/search/search.component';
 import { MeasurementComponent } from './components/measurement/measurement.component';
 import { PolygonDrawComponent } from './components/polygon-draw/polygon-draw.component';
 import { FavoritesComponent } from './components/favorites/favorites.component';
-import { StorageService, FavoritePolygon } from './services/storage.service';
+import { SettingsComponent } from './components/settings/settings.component';
+import { StorageService, FavoritePolygon, ApiSettings } from './services/storage.service';
 import { ToastService } from './services/toast.service';
 
 @Component({
@@ -29,7 +30,8 @@ import { ToastService } from './services/toast.service';
     SearchComponent,
     MeasurementComponent,
     PolygonDrawComponent,
-    FavoritesComponent
+    FavoritesComponent,
+    SettingsComponent
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
@@ -1227,43 +1229,6 @@ export class AppComponent implements AfterViewInit, OnInit {
       popup,
       interval: countdownInterval
     };
-  }
-
-  // Add a new method for saving settings from the modal
-  saveSettingsModal(): void {
-    // Add visual feedback by showing a loading state
-    const saveButton = document.querySelector('.save-settings-button') as HTMLButtonElement;
-    if (saveButton) {
-      const originalContent = saveButton.innerHTML;
-      saveButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Saving...';
-      saveButton.disabled = true;
-      
-      // Simulate a short delay to show the loading state
-      setTimeout(() => {
-        // Save settings to localStorage
-        localStorage.setItem('apiSettings', JSON.stringify(this.apiSettings));
-        
-        // Show success state
-        saveButton.innerHTML = '<i class="fa fa-check"></i> Saved!';
-        
-        // Show toast notification
-        this.showToast('Settings saved successfully', 'success');
-        
-        // Close the settings modal after a delay
-        setTimeout(() => {
-          this.toggleSettingsControl();
-        }, 1000);
-      }, 600);
-    } else {
-      // Fallback if button element not found
-      localStorage.setItem('apiSettings', JSON.stringify(this.apiSettings));
-      this.showToast('Settings saved successfully', 'success');
-      
-      // Close the settings modal
-      setTimeout(() => {
-        this.toggleSettingsControl();
-      }, 1000);
-    }
   }
 
   // Setup modal drag functionality

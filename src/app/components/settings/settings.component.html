@@ -1,0 +1,45 @@
+<app-modal
+  [isVisible]="isVisible"
+  [title]="'API Settings'"
+  [icon]="'fa-cog'"
+  [modalType]="'settings'"
+  (visibilityChange)="toggleVisibility()"
+>
+  <div class="settings-form">
+    <div class="form-group">
+      <div class="setting-label">
+        <i class="fa fa-link"></i> API URL
+      </div>
+      <input type="text" 
+             [(ngModel)]="localSettings.apiUrl" 
+             class="setting-input" 
+             placeholder="Enter API endpoint">
+    </div>
+    
+    <div class="form-group">
+      <div class="setting-label">
+        <i class="fa fa-key"></i> Bearer ID
+      </div>
+      <input type="text" 
+             [(ngModel)]="localSettings.bearerId" 
+             class="setting-input" 
+             placeholder="Enter bearer ID">
+    </div>
+    
+    <div class="form-group">
+      <div class="setting-label">
+        <i class="fa fa-tag"></i> Tracker ID
+      </div>
+      <input type="text" 
+             [(ngModel)]="localSettings.trackerId" 
+             class="setting-input" 
+             placeholder="Enter tracker ID">
+    </div>
+    
+    <div class="settings-actions">
+      <button (click)="saveSettings()" class="save-settings-button">
+        <i class="fa fa-save"></i> Save Settings
+      </button>
+    </div>
+  </div>
+</app-modal> 
