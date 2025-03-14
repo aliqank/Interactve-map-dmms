@@ -101,7 +101,7 @@
 6. ✅ Create a PolygonDrawComponent for drawing polygons
 7. ✅ Create a DataSendingComponent for API communication
 8. ✅ Update AppComponent to use LayerControlComponent
-9. ☐ Update AppComponent to use SearchComponent
+9. ✅ Update AppComponent to use SearchComponent
 10. ☐ Update AppComponent to use MeasurementComponent
 11. ☐ Update AppComponent to use PolygonDrawComponent
 12. ☐ Update AppComponent to use FavoritesComponent

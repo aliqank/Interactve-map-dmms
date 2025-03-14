@@ -41,11 +41,9 @@ import { MapService } from './services/map.service';
 })
 export class AppComponent implements AfterViewInit, OnInit {
   public map!: L.Map;
-  private searchMarker: L.Marker | null = null;
   private locationMarker: L.Marker | null = null;
   public measurePoints: L.Layer[] = [];
   private measureLine: L.Polyline | null = null;
-  private searchSubject = new Subject<string>();
   private measureMode = false;
   private drawPolygonMode = false;
   public tempPolygonPoints: L.LatLng[] = [];
@@ -53,9 +51,6 @@ export class AppComponent implements AfterViewInit, OnInit {
   private tempPolygon: L.Polygon | null = null;
   
   // UI control properties
-  searchQuery = '';
-  coordinatesQuery = '';
-  searchResults: any[] = [];
   showLayerControl = false;
   showSearchControl = false;
   showMeasureControl = false;
@@ -145,18 +140,6 @@ export class AppComponent implements AfterViewInit, OnInit {
     private toastService: ToastService,
     private mapService: MapService
   ) {
-    // Set up search with debounce
-    this.searchSubject.pipe(
-      debounceTime(500),
-      distinctUntilChanged()
-    ).subscribe(query => {
-      if (query.length > 2) {
-        this.performSearch(query);
-      } else {
-        this.searchResults = [];
-      }
-    });
-
     // Add event listeners for modal dragging
     this.setupModalDragListeners();
     
@@ -520,106 +503,6 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.toastService.success(`Deleted polygon: ${favorite.name}`);
   }
 
-  // Search functionality
-  onSearchInput(): void {
-    this.searchSubject.next(this.searchQuery);
-  }
-  
-  clearSearch(): void {
-    this.searchQuery = '';
-    this.searchResults = [];
-  }
-  
-  clearCoordinates(): void {
-    this.coordinatesQuery = '';
-  }
-  
-  performSearch(query: string): void {
-    this.isSearching = true;
-    // Using Nominatim OpenStreetMap search API (free and doesn't require API key)
-    const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
-    
-    this.http.get<any[]>(searchUrl).subscribe({
-      next: (results) => {
-        this.searchResults = results.slice(0, 5); // Limit to 5 results
-        this.isSearching = false;
-      },
-      error: (error) => {
-        console.error('Search error:', error);
-        this.isSearching = false;
-        this.showToast('Search failed. Please try again.', 'error');
-      }
-    });
-  }
-  
-  goToLocation(result: any): void {
-    const lat = parseFloat(result.lat);
-    const lon = parseFloat(result.lon);
-    
-    if (this.searchMarker) {
-      this.map.removeLayer(this.searchMarker);
-    }
-    
-    this.searchMarker = L.marker([lat, lon], {
-      icon: L.icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-      })
-    }).addTo(this.map);
-    
-    this.searchMarker.bindPopup(`<strong>${result.display_name}</strong>`).openPopup();
-    this.map.flyTo([lat, lon], 14);
-    this.searchResults = [];
-    this.showSearchControl = false;
-  }
-  
-  searchByCoordinates(): void {
-    // Parse the coordinates from the input string
-    const coordsStr = this.coordinatesQuery.trim();
-    
-    // Check if the input matches the expected format (two numbers separated by comma or space)
-    const coordsMatch = coordsStr.match(/^\s*([-+]?\d+\.?\d*)\s*[,\s]\s*([-+]?\d+\.?\d*)\s*$/);
-    
-    if (!coordsMatch) {
-      this.showToast('Please enter coordinates in the format: latitude, longitude', 'error');
-      return;
-    }
-    
-    const lat = parseFloat(coordsMatch[1]);
-    const lng = parseFloat(coordsMatch[2]);
-    
-    // Validate the coordinates
-    if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-      this.showToast('Invalid coordinates. Latitude must be between -90 and 90, and longitude between -180 and 180.', 'error');
-      return;
-    }
-    
-    // Remove existing marker if any
-    if (this.searchMarker) {
-      this.map.removeLayer(this.searchMarker);
-    }
-    
-    // Add a marker at the specified coordinates
-    this.searchMarker = L.marker([lat, lng], {
-      icon: L.icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-      })
-    }).addTo(this.map);
-    
-    this.searchMarker.bindPopup(`<strong>Coordinates: ${lat}, ${lng}</strong>`).openPopup();
-    this.map.flyTo([lat, lng], 14);
-    this.showSearchControl = false;
-  }
-  
   // Geolocation
   findMyLocation(): void {
     if (navigator.geolocation) {
