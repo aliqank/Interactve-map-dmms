@@ -222,7 +222,7 @@ export class MapService {
 
       // Update the layer control
       this.updateLayerControl();
-    }).catch(error => {
+    }).catch((error: any) => {
       console.error('Error loading Google Maps:', error);
       // Fallback to OSM if Google Maps fails to load
       if (!this.baseLayers['osm']) {
