@@ -12,6 +12,7 @@ export enum SidebarIcon {
   POLYGON = 'fa-draw-polygon',
   FAVORITES = 'fa-star',
   DATA_SENDING = 'fa-map-location',
+  MULTI_POINT = 'fa-map-marked-alt',
   SETTINGS = 'fa-cog',
   LOCATION = 'fa-location-arrow',
   CUSTOMIZE = 'fa-palette',
@@ -42,6 +43,7 @@ export interface MapControls {
   showGeoJsonControl: boolean;
   showPolygonControl: boolean;
   showDataSendingControl: boolean;
+  showMultiPointControl: boolean;
   showSettingsControl: boolean;
   showFavoritesControl: boolean;
 }
@@ -112,6 +114,7 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
     showGeoJsonControl: false,
     showPolygonControl: false,
     showDataSendingControl: false,
+    showMultiPointControl: false,
     showSettingsControl: false,
     showFavoritesControl: false
   };
@@ -175,6 +178,14 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
       isActive: false
     },
     {
+      id: 'multiPoint',
+      icon: SidebarIcon.MULTI_POINT,
+      title: 'Multi-Point Sending',
+      group: ControlGroup.MAP_CONTROLS,
+      action: () => this.toggleMapControl('multiPoint'),
+      isActive: false
+    },
+    {
       id: 'settings',
       icon: SidebarIcon.SETTINGS,
       title: 'Settings',
@@ -215,6 +226,7 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
   @Output() geoJsonControlToggled = new EventEmitter<void>();
   @Output() polygonControlToggled = new EventEmitter<void>();
   @Output() dataSendingControlToggled = new EventEmitter<void>();
+  @Output() multiPointControlToggled = new EventEmitter<void>();
   @Output() settingsControlToggled = new EventEmitter<void>();
   @Output() findLocationRequested = new EventEmitter<void>();
   @Output() favoritesControlToggled = new EventEmitter<void>();
@@ -757,6 +769,9 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
       case 'dataSending':
         this.dataSendingControlToggled.emit();
         break;
+      case 'multiPoint':
+        this.multiPointControlToggled.emit();
+        break;
       case 'settings':
         this.settingsControlToggled.emit();
         break;
@@ -820,6 +835,7 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
       'g': 'geojson',
       'p': 'polygon',
       'd': 'dataSending',
+      't': 'multiPoint',
       ',': 'settings',
       'f': 'favorites',
       'c': 'customize',
@@ -870,6 +886,7 @@ export class SidebarComponent implements AfterViewInit, OnInit, OnDestroy {
       'geojson': 'G',
       'polygon': 'P',
       'dataSending': 'D',
+      'multiPoint': 'T',
       'settings': ',',
       'favorites': 'F',
       'customize': 'C',

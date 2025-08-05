@@ -1,0 +1,67 @@
+<div class="multi-point-panel" *ngIf="isVisible">
+  <div class="panel-header">
+    <h3>Множественная отправка точек</h3>
+    <button class="close-btn" (click)="closePanel()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  
+  <div class="panel-content">
+    <div class="info-section">
+      <div class="info-item">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>Всего точек: {{ pointsCount }}</span>
+      </div>
+      <div class="info-item" *ngIf="sentPointsCount > 0">
+        <i class="fas fa-check-circle" style="color: #2b8a3e;"></i>
+        <span>Отправлено: {{ sentPointsCount }}</span>
+      </div>
+      <div class="info-item" *ngIf="errorPointsCount > 0">
+        <i class="fas fa-exclamation-circle" style="color: #e03131;"></i>
+        <span>Ошибки: {{ errorPointsCount }}</span>
+      </div>
+    </div>
+    
+    <div class="instructions">
+      <p><i class="fas fa-info-circle"></i> Кликайте по карте для добавления точек</p>
+      <p><i class="fas fa-link"></i> Точки будут соединены линией</p>
+      <p><i class="fas fa-clock"></i> Отправка происходит с интервалом 1 секунда</p>
+    </div>
+    
+    <div class="actions">
+      <button 
+        class="btn btn-primary" 
+        (click)="startSending()" 
+        [disabled]="pointsCount === 0 || isSending">
+        <i class="fas fa-paper-plane"></i>
+        Начать отправку
+      </button>
+      
+      <button 
+        class="btn btn-warning" 
+        (click)="stopSending()" 
+        [disabled]="!isSending">
+        <i class="fas fa-stop"></i>
+        Остановить
+      </button>
+      
+      <button 
+        class="btn btn-secondary" 
+        (click)="clearPoints()" 
+        [disabled]="pointsCount === 0">
+        <i class="fas fa-trash"></i>
+        Очистить все
+      </button>
+    </div>
+    
+    <div class="status" *ngIf="isSending">
+      <div class="status-indicator">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>Отправка точек...</span>
+      </div>
+      <div class="progress">
+        <div class="progress-bar" [style.width.%]="(currentPointIndex / pointsCount) * 100"></div>
+      </div>
+    </div>
+  </div>
+</div> 

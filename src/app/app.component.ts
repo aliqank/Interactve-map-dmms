@@ -13,6 +13,7 @@ import { PolygonDrawComponent } from './components/polygon-draw/polygon-draw.com
 import { FavoritesComponent } from './components/favorites/favorites.component';
 import { SettingsComponent } from './components/settings/settings.component';
 import { DataSendingComponent } from './components/data-sending/data-sending.component';
+import { MultiPointSendingComponent } from './components/multi-point-sending/multi-point-sending.component';
 import { StorageService, FavoritePolygon, ApiSettings } from './services/storage.service';
 import { ToastService } from './services/toast.service';
 import { MapService } from './services/map.service';
@@ -33,6 +34,7 @@ import { ApiService } from './services/api.service';
       (geoJsonControlToggled)="toggleGeoJsonControl()"
       (polygonControlToggled)="togglePolygonControl()"
       (dataSendingControlToggled)="toggleDataSendingControl()"
+      (multiPointControlToggled)="toggleMultiPointControl()"
       (settingsControlToggled)="toggleSettingsControl()"
       (favoritesControlToggled)="toggleFavoritesControl()"
       (findLocationRequested)="findMyLocation()">
@@ -100,6 +102,16 @@ import { ApiService } from './services/api.service';
       (visibilityChange)="showDataSendingControl = $event"
       (apiErrorChange)="apiError = $event">
     </app-data-sending>
+
+    <!-- Multi-Point Sending Control Panel -->
+    <app-multi-point-sending
+      [isVisible]="showMultiPointControl"
+      [map]="map"
+      [apiSettings]="apiSettings"
+      [apiError]="apiError"
+      (visibilityChange)="showMultiPointControl = $event"
+      (apiErrorChange)="apiError = $event">
+    </app-multi-point-sending>
     
     <app-toast></app-toast>
   `,
@@ -121,6 +133,7 @@ import { ApiService } from './services/api.service';
     HttpClientModule,
     SidebarComponent,
     DataSendingComponent,
+    MultiPointSendingComponent,
     FavoritesComponent,
     PolygonDrawComponent,
     MeasurementComponent,
@@ -144,6 +157,7 @@ export class AppComponent implements AfterViewInit, OnInit {
   showSettingsControl = false;
   showFavoritesControl = false;
   showDataSendingControl = false;
+  showMultiPointControl = false;
   isSearching = false;
   public dataSendingMode = false;
   
@@ -233,6 +247,10 @@ export class AppComponent implements AfterViewInit, OnInit {
 
   toggleDataSendingControl(): void {
     this.showDataSendingControl = !this.showDataSendingControl;
+  }
+  
+  toggleMultiPointControl(): void {
+    this.showMultiPointControl = !this.showMultiPointControl;
   }
   
   toggleSettingsControl(): void {
@@ -404,6 +422,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     this.showGeoJsonControl = false;
     this.showPolygonControl = false;
     this.showDataSendingControl = false;
+    this.showMultiPointControl = false;
     this.showSettingsControl = false;
     this.showFavoritesControl = false;
     
@@ -431,6 +450,9 @@ export class AppComponent implements AfterViewInit, OnInit {
         break;
       case 'dataSending':
         this.showDataSendingControl = true;
+        break;
+      case 'multiPoint':
+        this.showMultiPointControl = true;
         break;
       case 'settings':
         this.showSettingsControl = true;

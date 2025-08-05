@@ -62,6 +62,10 @@
   border-left: 4px solid #ff4d4f;
 }
 
+.toast.warning .toast-content {
+  border-left: 4px solid #faad14;
+}
+
 .toast.info .toast-content {
   border-left: 4px solid #1890ff;
 }
@@ -73,6 +77,10 @@
 
 .toast.error i:first-child {
   color: #ff4d4f;
+}
+
+.toast.warning i:first-child {
+  color: #faad14;
 }
 
 .toast.info i:first-child {

@@ -4,13 +4,12 @@ import { HttpClient } from '@angular/common/http';
 import { timeout, TimeoutError } from 'rxjs';
 import * as L from 'leaflet';
 import { ApiSettings } from '../../services/storage.service';
-import { ModalComponent } from '../shared/modal/modal.component';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-data-sending',
   standalone: true,
-  imports: [CommonModule, ModalComponent],
+  imports: [CommonModule],
   templateUrl: './data-sending.component.html',
   styleUrls: ['./data-sending.component.css']
 })

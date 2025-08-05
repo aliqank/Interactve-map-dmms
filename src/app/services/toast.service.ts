@@ -74,6 +74,19 @@ export class ToastService {
   }
 
   /**
+   * Show a warning toast
+   * @param message The message to display
+   * @param options Optional configuration options
+   */
+  warning(message: string, options?: Partial<Omit<ToastOptions, 'message' | 'type'>>): void {
+    this.show({
+      message,
+      type: 'warning',
+      ...options
+    });
+  }
+
+  /**
    * Show a toast with the specified options
    * @param options The toast options
    */

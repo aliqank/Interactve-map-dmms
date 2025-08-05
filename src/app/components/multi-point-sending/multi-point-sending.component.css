@@ -1,0 +1,221 @@
+.multi-point-panel {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 320px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+  border-radius: 8px 8px 0 0;
+}
+
+.panel-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.panel-content {
+  padding: 20px;
+}
+
+.info-section {
+  margin-bottom: 16px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #495057;
+}
+
+.info-item i {
+  width: 16px;
+  text-align: center;
+}
+
+.instructions {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-left: 4px solid #4263eb;
+}
+
+.instructions p {
+  margin: 0 0 6px 0;
+  font-size: 12px;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.instructions p:last-child {
+  margin-bottom: 0;
+}
+
+.instructions i {
+  color: #4263eb;
+  width: 12px;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #4263eb;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #364fc7;
+}
+
+.btn-warning {
+  background: #fcc419;
+  color: #495057;
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: #fab005;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #5a6268;
+}
+
+.status {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 12px;
+  border-left: 4px solid #4263eb;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #4263eb;
+  font-weight: 500;
+}
+
+.progress {
+  width: 100%;
+  height: 6px;
+  background: #e9ecef;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #4263eb;
+  transition: width 0.3s ease;
+}
+
+/* Стили для маркеров на карте */
+.custom-marker {
+  background: transparent !important;
+}
+
+.custom-marker-success {
+  background: transparent !important;
+}
+
+.custom-marker-error {
+  background: transparent !important;
+}
+
+/* Стили для попапов */
+.point-popup .leaflet-popup-content-wrapper {
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.point-popup .leaflet-popup-tip {
+  background: white;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .multi-point-panel {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+  }
+  
+  .actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .btn {
+    flex: 1;
+    min-width: 120px;
+  }
+} 

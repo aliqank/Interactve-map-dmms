@@ -4,7 +4,7 @@ import { trigger, state, style, animate, transition } from '@angular/animations'
 import { ToastService, ToastEvent } from '../../../services/toast.service';
 import { Subscription } from 'rxjs';
 
-export type ToastType = 'success' | 'error' | 'info';
+export type ToastType = 'success' | 'error' | 'info' | 'warning';
 export type ToastPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
 
 @Component({
@@ -125,6 +125,8 @@ export class ToastComponent implements OnInit, OnDestroy {
         return 'fa-check-circle';
       case 'error':
         return 'fa-exclamation-circle';
+      case 'warning':
+        return 'fa-exclamation-triangle';
       case 'info':
       default:
         return 'fa-info-circle';
